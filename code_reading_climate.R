@@ -29,9 +29,10 @@ untar("./data/scotese/Scotese_temp_precip_Ceno.tar.nc", exdir="./data/scotese")
 ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
 # Create a list of month abbreviations
 month_ID <- c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+# set dirrectories
 dir_scot <- "./data/scotese/formatted_data"
 dir_tfkea <- file.path(dir_scot, "tfkea")
-
+dir_sediment <- "./data/reconstructed_sediment"
 
 # LIST AND LOAD TEMPERATURE DATA
 # List temperature files
@@ -97,7 +98,7 @@ for (i in 1:length(ma)){
 # 2) SEDIMENTS
 
 # setwd("C:/Users/Usuario/OneDrive - campus.udg.edu/Escriptori/Oskar_sediments/reconstructed_sediment")
-sediment_files <- list.files("./data/reconstructed_sediment",  pattern = "\\.shp$")
+sediment_files <- list.files(dir_sediment,  pattern = "\\.shp$")
 # create stack of sediment data for temp and prec with average prec and average temp
 allextract_temp <- list()
 allextract_prec <- list()
@@ -105,7 +106,7 @@ allextract_prec <- list()
 ommited_sediments <- 1 # assuming ommited sediments are allways the present ones
 
 for (i in (1:length(sediment_files))+ommited_sediments) { # ask Marta, why starting at 2 here?
-  shapefile <- read_sf(file.path("./data/reconstructed_sediment", paste0("sediment_recons_", ma [i], "Ma.shp")))
+  shapefile <- read_sf(file.path(dir_sediment, paste0("sediment_recons_", ma [i], "Ma.shp")))
   extracted_data_temp <- extract (world_temp [[i]], shapefile, xy = TRUE, ID = FALSE)
   extracted_data_prec <- extract (world_prec [[i]], shapefile, xy = TRUE, ID = FALSE)
   allextract_temp[[paste0(ma [i], "Ma")]] <- extracted_data_temp
@@ -281,7 +282,7 @@ plot (biomes_stack)
 # Rasterise the reconstructed sediment shapefiles for each period
 sed_ras <- rast()
 for (i in 2:15) {
-  shapefile <- read_sf(file.path("./data/reconstructed_sediment", paste0("sediment_recons_", ma [i], "Ma.shp")))
+  shapefile <- read_sf(file.path(dir_sediment, paste0("sediment_recons_", ma [i], "Ma.shp")))
   ras <- rasterize (x = shapefile, y = biomes_stack[[1]])
   sed_ras <- c (sed_ras, ras)
 }
