@@ -1,80 +1,72 @@
-# add packages
+## METADATA ===============================================================
+## Description: 
+## scripts for identifying regions with high fossil preservation potential using 
+## climate data (Scotese model), fossil records, and sediment zones. 
+## We apply Köppen-Geiger climate classification to map biomes across 15 geological periods. 
+## 
+## R version: 4.2.2 for Windows
+## Date: 2024-10-18 16:59:26
+## License: GPL3 (Marta Please check)
+## Author: Marta Matamala, Sarava Varela, Oskar Hagen.
+##=======================================================================##
+
 library(terra)
 library(rgplates)
 library(sf)
+library (maps)
+source("support_functions.R")
 
 ########################
 #DATA PREPARATION
 # 1) WORLD DATA
 
-# Set the working directory
-#setwd("C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/scotese")
 # Unzip the data file (only the first time)
-#untar("Scotese_temp_precip_Ceno.tar.nc")
+untar("./data/scotese/Scotese_temp_precip_Ceno.tar.nc", exdir="./data/scotese")
+
+
+### VARIABLES ------------
+# years in millions
+ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
+# Create a list of month abbreviations
+month_ID <- c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+dir_scot <- "./data/scotese/formatted_data"
+dir_tfkea <- file.path(dir_scot, "tfkea")
+
 
 # LIST AND LOAD TEMPERATURE DATA
 # List temperature files
-list_temp.nc <- list.files("C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/scotese/formatted_data/tfkea", pattern = ".temp.nc")
-list_prec.nc <- list.files("C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/scotese/formatted_data/tfkea", pattern = ".precip.nc")
+list_temp.nc <- list.files(dir_tfkea, pattern = ".temp.nc")
+list_prec.nc <- list.files(dir_tfkea, pattern = ".precip.nc")
 
 # Set the directory to access the temperature files
-setwd("C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/scotese/formatted_data/tfkea")
+# setwd("C:/Users/Usuario/OneDrive - campus.udg.edu/Escriptori/Oskar_sediments/scotese/formatted_data/tfkea")
 
 # Create a raster stack from the temperature files
-stack_temp <- rotate (rast(list_temp.nc))
-stack_prec <- rotate (rast(list_prec.nc))
-names (stack_temp)<- list_temp.nc
-names (stack_prec)<- list_prec.nc
+stack_temp <- rotate (rast(file.path(dir_tfkea, list_temp.nc)))
+stack_prec <- rotate (rast(file.path(dir_tfkea, list_prec.nc)))
+names(stack_temp)<- list_temp.nc
+names(stack_prec)<- list_prec.nc
 
 
-dir <- "C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/scotese/formatted_data"
-setwd(dir)
+# dir <- "./data/scotese/formatted_data"
+# setwd(dir)
 scotese_times <- data.frame(
-  "name" = list.files(dir),
+  "name" = list.files("./data/scotese/formatted_data"),
   "ma" = c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
 )
 
-# Create a list of month abbreviations
-month_ID <- c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+
 
 # Initialize lists for temperature and precipitation data
 alldata_temp <- list()
 alldata_prec <- list()
 
-# Function for processing temperature and precipitation data for all periods
-
-#time_ID=integer, numbers codifying periods, valid numbers = c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
-# var_name = "1_5m_temp", "precip" 
-
-monthly_stacks <- function(time_ID, var_name, dir) {
-  setwd(file.path(dir, time_ID))
-  land_mask <- rotate(rast(paste(time_ID, ".qrparm.mask.nc", sep = "")))
-  envar_stack <- rast()
-  
-  for (i in 1:length(month_ID)) {
-    file_name <- paste(time_ID, "a.pdcl", month_ID[i], "_", var_name, ".nc", sep = "")
-    if (file.exists(file_name)) {
-      envar_rast <- rotate(rast(file_name))
-      
-      if (var_name == "1_5m_temp") {
-        envar_rast <- round(envar_rast - 273.15, 1)  # Convert from Kelvin to Celsius
-      } else if (var_name == "precip") {
-        envar_rast <- round(envar_rast * 60 * 60 * 24 * 30, 0)  # Convert to mm/month
-      }
-      
-      envar_masked <- terra::mask(envar_rast, land_mask[[1]], maskvalues = 0)
-      names (envar_masked)<- paste (time_ID, var_name, month_ID[i], sep="_")
-      envar_stack <- c(envar_stack, envar_masked)
-    }
-  }
-  
-  return(envar_stack)
-}
 
 
 # Process data for each time period
-dir <- "C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/scotese/formatted_data"
+
 for (i in 1:nrow(scotese_times)) {
+  # i <- 1
   time_ID <- scotese_times[i, 1]
   my_result_temp <- monthly_stacks(time_ID, "1_5m_temp", dir)
   my_result_prec <- monthly_stacks(time_ID, "precip", dir)
@@ -83,19 +75,19 @@ for (i in 1:nrow(scotese_times)) {
 }
 
 # Name the lists
-ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
 names(alldata_temp) <- paste("temp_", ma, sep = "")
 names(alldata_prec) <- paste("prec_", ma, sep = "")
 myears<- paste (ma, "Ma", sep="_")
 
 # create stack of world climatic data for temp and prec with average prec and average temp
-world_temp<- rast()
-world_prec<- rast()
-for (i in 1:15){
+world_temp<- NULL
+world_prec<- NULL
+for (i in 1:length(ma)){
+  # i <- 1
   world_temp<- c(world_temp, mean (alldata_temp [[i]]))
-  names (world_temp)[i]<- myears [i]
+  names(world_temp)[i]<- myears [i]
   world_prec<- c(world_prec, sum(alldata_prec [[i]]))
-  names (world_prec) [i] <- myears [i]
+  names(world_prec) [i] <- myears [i]
 } 
 
 
@@ -104,67 +96,70 @@ for (i in 1:15){
 ########################
 # 2) SEDIMENTS
 
-setwd("C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/reconstructed_sediment")
-list.files ()
+# setwd("C:/Users/Usuario/OneDrive - campus.udg.edu/Escriptori/Oskar_sediments/reconstructed_sediment")
+sediment_files <- list.files("./data/reconstructed_sediment",  pattern = "\\.shp$")
 # create stack of sediment data for temp and prec with average prec and average temp
 allextract_temp <- list()
 allextract_prec <- list()
 
-for (i in 2:15) {
-  shapefile <- read_sf(paste0("sediment_recons_", ma [i], "Ma.shp"))
+ommited_sediments <- 1 # assuming ommited sediments are allways the present ones
+
+for (i in (1:length(sediment_files))+ommited_sediments) { # ask Marta, why starting at 2 here?
+  shapefile <- read_sf(file.path("./data/reconstructed_sediment", paste0("sediment_recons_", ma [i], "Ma.shp")))
   extracted_data_temp <- extract (world_temp [[i]], shapefile, xy = TRUE, ID = FALSE)
   extracted_data_prec <- extract (world_prec [[i]], shapefile, xy = TRUE, ID = FALSE)
   allextract_temp[[paste0(ma [i], "Ma")]] <- extracted_data_temp
   allextract_prec[[paste0(ma [i], "Ma")]] <- extracted_data_prec
 }
+# ask Marta, does this resolution makes sense? 1km²?
+#plot(rast(allextract_temp[[14]][,c(2,3,1)]))
 
 ## beware that here if you put 15 layers of sediment, you have to remove the minus 1 from the "i"!! and start the loop at 1.
 
-for (i in 2:15) {
+for (i in (1:length(sediment_files))+ommited_sediments) {
+  # i <- 2
+  #print(i)
   rast_temp_name <- paste0("rast", ma[i], "_temp")
-  assign(rast_temp_name, rast (na.omit(allextract_temp[[i-1]][, c(2, 3, 1)])))
+  assign(rast_temp_name, rast (na.omit(allextract_temp[[i-ommited_sediments]][, c(2, 3, 1)])))
   
   rast_prec_name <- paste0("rast", ma[i], "_prec")
-  assign(rast_prec_name, rast(na.omit(allextract_prec[[i-1]][, c(2, 3, 1)])))
+  assign(rast_prec_name, rast(na.omit(allextract_prec[[i-ommited_sediments]][, c(2, 3, 1)])))
 }
 
-str (allextract_prec)
+# str (allextract_prec)
 ########################
 # 3) FOSSILS
 
-fossil_data <- read.csv("C:/Users/Usuario/OneDrive - Universidade de Vigo/PhD/SEDIMENTOS/DATA/now_database/now_database_09-09-24processed.csv")
+fossil_data <- read.csv("./data/now_database/now_database_09-09-24processed.csv")
 
 str(fossil_data)
 head(fossil_data)
 summary(fossil_data)
 
 # define the period limits (to reclassify the fossils within our working periods)
-periods <- list(
-  "0" = c(0, 0.01),          
-  "3" = c(2.8, 3.2),         
-  "11" = c(10, 12),          
-  "15" = c(14, 16),          
-  "20" = c(19, 21),          
-  "26" = c(25, 27),          
-  "31" = c(30, 32),          
-  "36" = c(35, 37),          
-  "40" = c(39, 41),          
-  "45" = c(44, 46),          
-  "52" = c(51, 53),          
-  "56" = c(55, 57),          
-  "61" = c(60, 62),          
-  "66" = c(65, 67),          
-  "69" = c(68, 70))
-
-periods
+periods <- setNames(lapply(ma, function(x) {
+  if (x==0){c(0,0.01)}
+  else if (x==3){c(x - 0.2, x + 0.2)}
+  else { c(x - 1, x + 1)}
+}), as.character(ma))
 
 # reclassify the fossils to the period (ma) that corresponds to our conditions
+
+# This is mess restrictive...
 fossil_data$ma<- NA
-for (i in 1:15){
-  fossil_data$ma [fossil_data$MIN_AGE>=min (periods [[i]]) & fossil_data$MAX_AGE<= max (periods[[i]])]<- names (periods [i])
-  fossil_data$ma [fossil_data$MIN_AGE>=min (periods [[i]]) & fossil_data$MIN_AGE<= max (periods[[i]])]<- names (periods [i])
-  fossil_data$ma  [fossil_data$MAX_AGE>=min (periods [[i]]) & fossil_data$MAX_AGE<= max (periods[[i]])]<- names (periods [i])
+for (i in 1:length(ma)){
+  fossil_data$ma[fossil_data$MIN_AGE>=min(periods [[i]]) & fossil_data$MAX_AGE<= max(periods[[i]])]<- names(periods [i])
+  fossil_data$ma[fossil_data$MIN_AGE>=min(periods [[i]]) & fossil_data$MIN_AGE<= max(periods[[i]])]<- names(periods [i])
+  fossil_data$ma[fossil_data$MAX_AGE>=min(periods [[i]]) & fossil_data$MAX_AGE<= max(periods[[i]])]<- names(periods [i])
 }
+
+# # this is more restrictive.....
+# fossil_data$ma_alternative<- NA
+# for (i in 1:length(ma)) {
+#   condition <- fossil_data$MIN_AGE >= min(periods[[i]]) & fossil_data$MAX_AGE <= max(periods[[i]])
+#   fossil_data$ma_alternative[condition] <- names(periods[i])
+# }
+# 
 
 # convert fossil to work
 fossil_data<- as.data.frame (fossil_data)
@@ -173,10 +168,11 @@ fossil_data$ma<- as.numeric (as.character (fossil_data$ma))
 fossil_data_old<- fossil_data
 fossil_data<- fossil_data_old [complete.cases (fossil_data_old), ]
 
-# apply palaeorotations (rgplates) to all fossils (palaeolat and palaeolon)
+# apply palaeorotations (rgplates) to all fossil occurances (palaeolat and palaeolon)
 fossil_data$paleolong<- NA
 fossil_data$paleolat<- NA
 names (fossil_data)
+
 
 for (i in sort (unique (fossil_data$ma))){
   fossil_data [fossil_data$ma==i, 9:10]<- reconstruct(fossil_data [fossil_data$ma==i, 4:3], 
@@ -185,40 +181,47 @@ for (i in sort (unique (fossil_data$ma))){
 
 # add prec and temp data to each fossil as a function of paleolat and paleolon
 sort (unique (fossil_data$ma))
-world_temp 
+# world_temp 
 fossil_data$prec<- NA
 fossil_data$temp<- NA
-tiempos<- sort (unique (fossil_data$ma))
-for (i in 1:14){
-  fossil_data$temp [fossil_data$ma==tiempos [i]]<- extract (world_temp [[i]], fossil_data [fossil_data$ma==tiempos[i] ,9:10 ])[, 2]
-  fossil_data$prec [fossil_data$ma==tiempos [i]]<- extract (world_prec[[i]], fossil_data [fossil_data$ma==tiempos [i] ,9:10 ])[, 2]
+tiempos <- sort (unique (fossil_data$ma))
+
+
+for (i in 1:length(tiempos)){
+  # create a mask for time
+  tiempos_mask <- fossil_data$ma==tiempos [i]
+  fossil_data$temp [tiempos_mask]<- extract (world_temp [[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
+  fossil_data$prec [tiempos_mask]<- extract (world_prec[[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
 }
 
 ########################
 # PLOTS
 
 # plot T-P diagram with world, sediments and fossils data.
-# sediment has no time 0 (has 14 scenarios). world has time 0 (has 15 scenarios). "i" 's are unmatched.
+# sediment has no time 0 (i.e. 14 scenarios). world has time 0 (i.e. 15 scenarios). "i" 's are unmatched.
 tiempos
 
 par(mfrow = c(3, 5))
 for (i in 2:14){
   plot (world_temp[[i]], world_prec[[i]], xlim=c(-40, 40), ylim=c(0,6000), main=ma[[i]])
   points (allextract_temp[[i-1]] [,1], allextract_prec[[i-1]][,1], col=2, pch=16)
-  points(fossil_data$temp [fossil_data$ma == tiempos [i]], fossil_data$prec[fossil_data$ma == tiempos [i]], col=3, pch=16)
+  plot(world_temp[[i]], world_prec[[i]], add=T)
+  points(fossil_data$temp [fossil_data$ma == tiempos [i]], fossil_data$prec[fossil_data$ma == tiempos [i]], col="darkblue", pch=1, cex=1)
 }
 
 # boxplot temp all periods
 dev.off()
+# TODO add legend to this plot
 par(mfrow = c(3, 5))
 for (i in 2:14){
-  boxplot (as.vector (world_temp[[i]]), allextract_temp[[i-1]][,1],        
-           fossil_data$temp [fossil_data$ma == tiempos [i]], 
-           main=ma[[i]], na.rm=T, ylim=c(-40, 40))
+  boxplot(as.vector (world_temp[[i]]), allextract_temp[[i-1]][,1],        
+          fossil_data$temp [fossil_data$ma == tiempos [i]], 
+          main=ma[[i]], na.rm=T, ylim=c(-40, 40))
   
 }
 
 # boxplot prec all periods
+# TODO add legend to this plot
 par(mfrow = c(3, 5))
 for (i in 2:14){
   boxplot (as.vector (world_prec[[i]]), allextract_prec[[i-1]][,1],
@@ -229,148 +232,6 @@ for (i in 2:14){
 
 ########################
 #BIOMES RECLASSIFICATION
-
-#  "kg_reclass" function  (S. Galván)
-
-# R functions based on Beck et al. (2018) "Koppengeiger" function on Matlab.
-# "Temp" and "Prec" arguments represent temperature and precipitation regimenes, 
-# and should be provided as three dimentional arrays with the third dimension 
-# representing time (12 months).
-# Temp data should be provided in degrees Celsius, and Prep data in mm/months.
-
-# "type" argument has to be "class" (for results indicating the numeric indentifier
-# of the specific class 1-30) or "broadclass" (for results indicating the numeric 
-# identifier of the broad class (1-5).
-library (maps)
-
-
-kg_reclass <- function(Temp, Prec, type) {
-  
-  if (identical(dim(Temp), dim(Prec))==F){
-    stop("Data matrices have not the same dimensions")
-  }
-  
-  if (any(Prec<0, na.rm = T)==T) {
-    stop("Precipitation data can not include negative values") #Added na.rm
-  }
-  
-  if (type != "class" && type != "broadclass") {
-    stop("The type argument provided does not exist")
-  }
-  
-  Temp[is.na(Temp)] <- -99 #Added
-  Prec[is.na(Prec)] <- -99 #Added
-  
-  T_ONDJFM <- apply(Temp[, , c(1,2,3,10,11,12)], c(1,2), mean) 
-  T_AMJJAS <- apply(Temp[, , c(4, 5, 6, 7, 8, 9)], c(1,2), mean)
-  tmp <- T_AMJJAS>T_ONDJFM
-  SUM_SEL <- array(as.logical(0), dim(Temp))
-  SUM_SEL[,, c(4, 5, 6, 7, 8, 9)] <- rep(tmp, 6)
-  SUM_SEL[,, c(10, 11, 12, 1, 2, 3)] <- rep(!tmp,6)
-  rm(tmp)
-  
-  Pw <- apply(Prec*!SUM_SEL, c(1,2), sum) 
-  Ps <- apply(Prec*SUM_SEL, c(1,2), sum) 
-  
-  Pdry <- apply (Prec, c(1,2), min) 
-  
-  tmp <- SUM_SEL
-  tmp[tmp==0] = NA
-  Psdry <- apply(Prec*tmp, c(1,2), min, na.rm = TRUE) 
-  Pswet <- apply(Prec*tmp, c(1,2), max, na.rm = TRUE) 
-  
-  tmp <- !SUM_SEL
-  tmp[tmp==0] = NA
-  Pwdry <- apply(Prec*tmp, c(1,2), min, na.rm = TRUE) 
-  Pwwet <- apply(Prec*tmp, c(1,2), max, na.rm = TRUE) 
-  
-  MAT <- apply(Temp, c(1,2), mean)
-  MAP <- apply(Prec, c(1,2), sum) 
-  Tmon10 <- apply(Temp > 10, c(1,2), sum) 
-  Thot <- apply(Temp, c(1,2), max)
-  Tcold <- apply(Temp, c(1,2), min)
-  
-  Pthresh <- 2*MAT+14 #where temp = -99, this is -184
-  Pthresh[Pw>Ps*2.333] <- 2*MAT[Pw>Ps*2.333]       
-  Pthresh[Ps>Pw*2.333] <- 2*MAT[Ps>Pw*2.333]+28 
-  
-  B <- MAP < 10*Pthresh 
-  BW <- B & MAP < 5*Pthresh 
-  BWh <- BW & MAT >= 18
-  BWk <- BW & MAT < 18
-  BS <- B & MAP >= 5*Pthresh
-  BSh <- BS & MAT >= 18
-  BSk <- BS & MAT < 18
-  
-  A <- Tcold >= 18 & !B 
-  Af <- A & Pdry >= 60
-  Am <- A & !Af & Pdry >= 100-MAP/25
-  Aw <- A & !Af & Pdry < 100-MAP/25
-  
-  C <- Thot > 10 & Tcold > 0 & Tcold < 18 & !B 
-  Cs <- C & Psdry<40 & Psdry<Pwwet/3
-  Cw <- C & Pwdry<Pswet/10
-  overlap <- Cs & Cw
-  Cs[overlap & Ps>Pw] <- 0
-  Cw[overlap & Ps<=Pw] <- 0
-  Csa <- Cs & Thot >= 22
-  Csb <- Cs & !Csa & Tmon10 >= 4
-  Csc <- Cs & !Csa & !Csb & Tmon10>=1 & Tmon10<4
-  Cwa <- Cw & Thot >= 22
-  Cwb <- Cw & !Cwa & Tmon10 >= 4
-  Cwc <- Cw & !Cwa & !Cwb & Tmon10>=1 & Tmon10<4
-  Cf <- C & !Cs & !Cw
-  Cfa <- Cf & Thot >= 22
-  Cfb <- Cf & !Cfa & Tmon10 >= 4
-  Cfc <- Cf & !Cfa & !Cfb & Tmon10>=1 & Tmon10<4
-  
-  D <- Thot>10 & Tcold<=0 & !B   
-  Ds <- D & Psdry<40 & Psdry<Pwwet/3
-  Dw <- D & Pwdry<Pswet/10
-  overlap <- Ds & Dw
-  Ds[overlap & Ps>Pw] <- 0
-  Dw[overlap & Ps<=Pw] <- 0
-  Dsa <- Ds & Thot>=22
-  Dsb <- Ds & !Dsa & Tmon10 >= 4
-  Dsd <- Ds & !Dsa & !Dsb & Tcold < (-38) 
-  Dsc <- Ds & !Dsa & !Dsb & !Dsd
-  
-  Dwa <- Dw & Thot>=22
-  Dwb <- Dw & !Dwa & Tmon10 >= 4
-  Dwd <- Dw & !Dwa & !Dwb & Tcold < (-38)
-  Dwc <- Dw & !Dwa & !Dwb & !Dwd
-  Df <- D & !Ds & !Dw
-  Dfa <- Df & Thot>=22
-  Dfb <- Df & !Dfa & Tmon10 >= 4
-  Dfd <- Df & !Dfa & !Dfb & Tcold < (-38)
-  Dfc <- Df & !Dfa & !Dfb & !Dfd
-  
-  E <- Thot <= 10 & Thot > (-90) & !B    #Added & Thot > (-90)
-  ET <- E & Thot>0
-  EF <- E & Thot<=0 & Thot> (-90) # Added & Thot> (-90)
-  
-  
-  if (type == "class") {
-    Class <- list(Af, Am, Aw, BWh, BWk, BSh, BSk, Csa, Csb, Csc, Cwa, Cwb,
-                  Cwc, Cfa, Cfb, Cfc, Dsa, Dsb, Dsc, Dsd, Dwa, Dwb, Dwc, Dwd, Dfa,
-                  Dfb, Dfc, Dfd, ET, EF)
-    Class_cont <- array(0, dim(Temp[,,1]))
-    for (i in 1:30){
-      Class_cont[Class[[i]]==1] <- i
-    }
-    Class_cont[Class_cont == 0] <- NA #Added
-    return(Class_cont)
-  } 
-  if (type == "broadclass") {
-    Broadclass <- list(A, B, C, D, E)
-    BroadClass_cont <- array(0, dim(Temp[,,1]))
-    for (i in 1:5){
-      BroadClass_cont[Broadclass[[i]]==1] <- i
-    }
-    BroadClass_cont[BroadClass_cont == 0] <- NA #Added 
-    return(BroadClass_cont)
-  }   
-}
 
 # Convert temperature and precipitation data from the first period into arrays
 t0<- as.array(alldata_temp[[1]])
@@ -384,7 +245,7 @@ tiempo0<- kg_reclass (Temp=t0,
 
 # Apply the kg_class function to all periods
 biomas<-list ()
-for (i in 1:15){
+for (i in 1:length(ma)){
   t<- as.array(alldata_temp[[i]])
   p<- as.array(alldata_prec[[i]])
   biomas [[i]]<-kg_reclass (Temp=t, Prec=p,type="broadclass")
@@ -394,7 +255,7 @@ for (i in 1:15){
 r<- alldata_temp[[1]]
 crs(r) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
 area_raster<- cellSize (r)
-dev.off()
+dev.off() # TODO, is this necessary?
 plot (r [[1]])
 map (add=T)
 area<- values (area_raster)
@@ -404,31 +265,34 @@ dim (area)
 plot (area_raster)
 
 # Create a stack of biomes for all periods (projected in the WGS84)
-biomes_stack <- rast ()
-for (i in 1:15){
+biomes_stack <- NULL
+for (i in 1:length(ma)){
   biomes <- rast (biomas [[i]], extent=ext(-181.875, 178.125, -91.25, 91.25), 
                   crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" )
   biomes_stack <- c (biomes_stack, biomes)
 }
+# warning because the first raster is empty and ignored
 
-# Assign names to each layer of the stack according to age (in millions of years)
+# Assign names to each layer of the stack according to age (in millions of years) and plot
 names (biomes_stack) <- ma
 plot (biomes_stack)
+# 15 warnings because first rasters are empty and ignored
 
 # Rasterise the reconstructed sediment shapefiles for each period
 sed_ras <- rast()
 for (i in 2:15) {
-  shapefile <- read_sf(paste0("sediment_recons_", ma [i], "Ma.shp"))
+  shapefile <- read_sf(file.path("./data/reconstructed_sediment", paste0("sediment_recons_", ma [i], "Ma.shp")))
   ras <- rasterize (x = shapefile, y = biomes_stack[[1]])
   sed_ras <- c (sed_ras, ras)
 }
+# warning because the first raster is empty and ignored
 
 
 # 1)Calculate the areas occupied by each biome within the fossil sediment zones
-biomes_areas <- data.frame (ma = ma [-1], tropical = NA, arid = NA, 
-                            temperate = NA, cold = NA, polar = NA)
-biomes_areas_percent <- data.frame (ma = ma [-1], tropical = NA, arid = NA, 
-                                    temperate = NA, cold = NA, polar = NA)
+biomes_areas <- data.frame(ma = ma [-1], tropical = NA, arid = NA, 
+                           temperate = NA, cold = NA, polar = NA)
+biomes_areas_percent <- data.frame(ma = ma [-1], tropical = NA, arid = NA, 
+                                   temperate = NA, cold = NA, polar = NA)
 
 for (i in 2:15) {
   tabla <- data.frame (values (biomes_stack[[i]]),
@@ -480,20 +344,8 @@ proportion_by_biome$ma <- ma[-1]
 
 # Plot proportions
 # think of a type of graph that represents well the proportions of the 5 biomes between the areas occupied by each biome in sediment zones with respect to the world total
-library(ggplot2)
-library(tidyr)
+plot (1:5, proportion_by_biome [1,1:5])
+points (1:5, proportion_by_biome [2,1:5])
 
-# Convert the dataframe to long format where each row represents a combination of biome and its proportion in a given year
-proportion_by_biome_long <- pivot_longer(proportion_by_biome, 
-                                         cols = -ma, 
-                                         names_to = "biome", 
-                                         values_to = "proportion")
 
-# Create stacked bar chart with proportions ("fill" position)
-ggplot(proportion_by_biome_long, aes(x = ma, y = proportion, fill = biome)) +
-  geom_col(position = "fill") +
-  labs(x = "Million years (ma)", 
-       y = "Proportion") +
-  scale_y_continuous(labels = scales::percent) +  #Axis y as a percentage
-  scale_x_continuous(breaks = c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)) +
-  theme_classic()
+
