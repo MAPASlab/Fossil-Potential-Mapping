@@ -275,7 +275,7 @@ for (i in 1:nlyr(biomes_stack)) {
   biomes_stack_fixed[[i]] <- layer
 }
 
-par(mfrow = c(4, 4), mar = c(2, 2, 3, 1)) 
+par(mfrow = c(4, 4), mar = c(2, 2, 3, 1)/2) 
 
 for (i in 1:nlyr(biomes_stack_fixed)) {
   plot(biomes_stack_fixed[[i]], col = biome_colors, legend = FALSE, 
@@ -363,7 +363,7 @@ total_area <- res[1:5, ]
 sediments_area <- res[11:15, ]
 
 # Plot
-par(mfrow = c(1, 5))
+par(mfrow = c(1, 5), mai = c(1, 1, 2, 0)/2)
 
 # Loop to create bar charts for each biome
 for (i in 1:5) {
@@ -399,3 +399,36 @@ for (i in 1:5) {
 }
 
 
+########################
+#% OF NON SAMPLED BIOME AREA
+
+sediments_area_matrix <- as.matrix(sediments_area)
+total_area_matrix <- as.matrix(total_area)
+
+# Biome, period and colour labels
+biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
+time_periods <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
+biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
+
+# Calculate percentage of unsampled area
+percentage_unsampled <- ((total_area_matrix - sediments_area_matrix) / total_area_matrix) * 100
+
+# Plot
+par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
+plot(
+  time_periods, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
+  xlab = "Time (Ma)", ylab = "% of non sampled biome area",
+  ylim = c(0, 100), xaxt = "n"
+)
+axis(1, at = time_periods, labels = time_periods) # Customise X-axis with time_periods labels
+
+# Add lines for the other biomes
+for (i in 2:nrow(percentage_unsampled)) {
+  lines(time_periods, percentage_unsampled[i, ], col = biome_colors[i], lwd = 2)
+}
+
+# Add legend
+legend(
+  "topright", legend = biome_names, col = biome_colors,
+  lwd = 2, bty = "n"
+)
