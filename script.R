@@ -402,8 +402,9 @@ for (i in 1:5) {
 ########################
 #% OF NON SAMPLED BIOME AREA
 
-sediments_area_matrix <- as.matrix(sediments_area)
 total_area_matrix <- as.matrix(total_area)
+sediments_area_matrix <- as.matrix(sediments_area)
+
 
 # Biome, period and colour labels
 biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
@@ -432,3 +433,6 @@ legend(
   "topright", legend = biome_names, col = biome_colors,
   lwd = 2, bty = "n"
 )
+
+#THERE'S A PROBLEM, ROW 5 COL 2 OF sediments_area IS > THAN total_area, SO THE % IS NEGATIVE
+#which(sediments_area > total_area, arr.ind = TRUE)
