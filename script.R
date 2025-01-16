@@ -402,30 +402,29 @@ for (i in 1:5) {
 ########################
 #% OF NON SAMPLED BIOME AREA
 
-total_area_matrix <- as.matrix(total_area)
-sediments_area_matrix <- as.matrix(sediments_area)
-
-
 # Biome, period and colour labels
 biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
-time_periods <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
+ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
 biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
 
 # Calculate percentage of unsampled area
-percentage_unsampled <- ((total_area_matrix - sediments_area_matrix) / total_area_matrix) * 100
+percentage_unsampled <- ((total_area - sediments_area) / total_area) * 100
+
+# Replace negative values with NA (optional, to handle invalid data)
+percentage_unsampled[percentage_unsampled < 0] <- NA
 
 # Plot
 par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
 plot(
-  time_periods, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
+  ma, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
   xlab = "Time (Ma)", ylab = "% of non sampled biome area",
-  ylim = c(0, 100), xaxt = "n"
+  ylim = c(60, 100), xaxt = "n"
 )
-axis(1, at = time_periods, labels = time_periods) # Customise X-axis with time_periods labels
+axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
 
 # Add lines for the other biomes
 for (i in 2:nrow(percentage_unsampled)) {
-  lines(time_periods, percentage_unsampled[i, ], col = biome_colors[i], lwd = 2)
+  lines(ma, percentage_unsampled[i, ], col = biome_colors[i], lwd = 2)
 }
 
 # Add legend
@@ -433,6 +432,3 @@ legend(
   "topright", legend = biome_names, col = biome_colors,
   lwd = 2, bty = "n"
 )
-
-#THERE'S A PROBLEM, ROW 5 COL 2 OF sediments_area IS > THAN total_area, SO THE % IS NEGATIVE
-#which(sediments_area > total_area, arr.ind = TRUE)
