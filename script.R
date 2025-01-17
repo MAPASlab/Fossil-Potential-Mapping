@@ -1,8 +1,8 @@
 ## METADATA ===============================================================
 ## Description: 
 ## scripts for identifying regions with high fossil preservation potential using 
-## climate data (HadCM3 model), fossil records (NOW database and PaleobioDB), and sediment zones (GEOSCAN). 
-## We apply Köppen-Geiger climate classification to map biomes across 15 geological periods. 
+## climate data (HadCM3 model (Valdes et al., 2017)), fossil records (The NOW Community (2024) and Paleobiology Database (2024)), and sediment zones (Chorlton, 2007). 
+## We apply the Köppen-Geiger climate reclassification function (Galván et al., 2023; https://github.com/MAPASlab/KoppenGeiger_inR) to map biomes across 15 geological periods. 
 ## 
 ## R version: 4.2.2 for Windows
 ## Date: 2024-10-18 16:59:26
@@ -417,7 +417,7 @@ percentage_unsampled[percentage_unsampled < 0] <- NA
 par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
 plot(
   ma, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
-  xlab = "Time (Ma)", ylab = "% of non sampled biome area",
+  xlab = "Time (Ma)", ylab = "% of unsampled biome area",
   ylim = c(60, 100), xaxt = "n"
 )
 axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
@@ -429,6 +429,6 @@ for (i in 2:nrow(percentage_unsampled)) {
 
 # Add legend
 legend(
-  "topright", legend = biome_names, col = biome_colors,
+  "bottomright", legend = biome_names, col = biome_colors,
   lwd = 2, bty = "n"
 )
