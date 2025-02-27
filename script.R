@@ -249,6 +249,55 @@ for (i in 1:14){
            main=ma[[i]], na.rm=T, ylim=c(0, 1500), names = c("Wrld", "Sedi", "Foss"))
 }
 
+# evolution of boxplot medians over time
+par(mfrow = c(2, 1))
+
+# TEMPERATURE MEDIANS
+# vector for storing medians
+median_allextract <- numeric(14)
+median_fossil <- numeric(14)
+
+# calculate medians for each period
+for (i in 1:14) {
+  median_allextract[i] <- median(allextract_temp[[i]][,1], na.rm = TRUE)
+  median_fossil[i] <- median(fossil_data$temp[fossil_data$ma == tiempos[i]], na.rm = TRUE)
+}
+
+# plot
+plot(tiempos, median_allextract, type = "l", col = "blue", lty = 1, ylim = range(c(median_allextract, median_fossil), na.rm = TRUE),
+     ylab = "Temperature median", xlab = "Tiempo (Ma)", axes = FALSE)
+lines(tiempos, median_fossil, col = "red", pch = 16, lty = 1)
+
+axis(1) # add axis separately
+axis(2)
+
+abline(h = 0, col = "black") # add line to value 0
+
+legend("bottomright", legend = c("allextract_temp", "fossil_data"), col = c("blue", "red"), lty = 1, bty = "n")
+
+# PRECIPITATION MEDIANS
+# vector for storing medians
+median_allextract_prec <- numeric(14)
+median_fossil_prec <- numeric(14)
+
+# calculate medians for each period
+for (i in 1:14) {
+  median_allextract_prec[i] <- median(allextract_prec[[i]][,1], na.rm = TRUE)
+  median_fossil_prec[i] <- median(fossil_data$prec[fossil_data$ma == tiempos[i]], na.rm = TRUE)
+}
+
+# plot
+plot(tiempos, median_allextract_prec, type = "l", col = "blue", lty = 1, ylim = range(c(median_allextract_prec, median_fossil_prec), na.rm = TRUE),
+     ylab = "Precipitation median", xlab = "Tiempo (Ma)", axes = FALSE)
+lines(tiempos, median_fossil_prec, col = "red", lty = 1)
+
+axis(1) # add axis separately
+axis(2)
+
+abline(h = 0, col = "black") # add line to value 0
+
+legend("bottomright", legend = c("allextract_prec", "fossil_data"), col = c("blue", "red"), lty = 1, bty = "n")
+
 ########################
 #BIOMES RECLASSIFICATION
 
