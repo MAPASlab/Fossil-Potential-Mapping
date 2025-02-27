@@ -129,6 +129,7 @@ periods <- setNames(lapply(ma, function(x) {
   else { c(x - 1, x + 1)}
 }), as.character(ma))
 
+periods <- list(
 # reclassify the fossils to the period (ma) that corresponds to our conditions
 
 fossil_data$ma<- NA
