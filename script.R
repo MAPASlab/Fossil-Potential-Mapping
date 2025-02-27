@@ -130,14 +130,30 @@ periods <- setNames(lapply(ma, function(x) {
 }), as.character(ma))
 
 periods <- list(
+  "0" = c(0, 0.01),          
+  "3" = c(2.8, 3.2),         
+  "11" = c(10, 12),          
+  "15" = c(14, 16),          
+  "20" = c(19, 21),          
+  "26" = c(25, 27),          
+  "31" = c(30, 32),          
+  "36" = c(35, 37),          
+  "40" = c(39, 41),          
+  "45" = c(44, 46),          
+  "52" = c(51, 53),          
+  "56" = c(55, 57),          
+  "61" = c(60, 62),          
+  "66" = c(65, 67),          
+  "69" = c(68, 70))
+
 # reclassify the fossils to the period (ma) that corresponds to our conditions
 
-fossil_data$ma<- NA
-for (i in 1:15){
-  fossil_data$ma [fossil_data$MIN_AGE>=min (periods [[i]]) & fossil_data$MAX_AGE<= max (periods[[i]])]<- names (periods [i])
-  fossil_data$ma [fossil_data$MIN_AGE>=min (periods [[i]]) & fossil_data$MIN_AGE<= max (periods[[i]])]<- names (periods [i])
-  fossil_data$ma  [fossil_data$MAX_AGE>=min (periods [[i]]) & fossil_data$MAX_AGE<= max (periods[[i]])]<- names (periods [i])
+fossil_data$ma <- NA
+for (i in 1:15) {
+  fossil_data$ma[fossil_data$MIN_AGE >= min(periods[[i]]) & fossil_data$MAX_AGE <= max(periods[[i]])] <- names(periods[i])
+  fossil_data$ma[fossil_data$MIN_AGE <= max(periods[[i]]) & fossil_data$MAX_AGE >= min(periods[[i]])] <- names(periods[i])
 }
+
 
 # convert fossil to work
 fossil_data<- as.data.frame (fossil_data)
