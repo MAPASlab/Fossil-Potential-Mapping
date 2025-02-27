@@ -208,7 +208,7 @@ for (i in seq_along(shp_list)) {
   
   plot(st_geometry(shp_list[[i]]), 
        main = paste(ma_value, "Ma"), 
-       col = "black", border = "black", 
+       col = "black", 
        xlim = xlim, ylim = ylim, 
        axes = FALSE, asp = 1)
   
@@ -236,7 +236,7 @@ par(mfrow = c(3, 5))
 for (i in 1:14){
   boxplot(as.vector (world_temp[[i]]), allextract_temp[[i]][,1],        
            fossil_data$temp [fossil_data$ma == tiempos [i]], 
-           main=ma[[i]], na.rm=T, ylim=c(-40, 40))
+           main=ma[[i]], na.rm=T, ylim=c(-40, 40), names = c("Wrld", "Sedi", "Foss"))
 }
 
 
@@ -246,7 +246,7 @@ par(mfrow = c(3, 5))
 for (i in 1:14){
   boxplot (as.vector (world_prec[[i]]), allextract_prec[[i]][,1],
            fossil_data$prec [fossil_data$ma == tiempos [i]], 
-           main=ma[[i]], na.rm=T, ylim=c(0, 1500))
+           main=ma[[i]], na.rm=T, ylim=c(0, 1500), names = c("Wrld", "Sedi", "Foss"))
 }
 
 ########################
@@ -429,13 +429,15 @@ percentage_unsampled <- ((total_area - sediments_area) / total_area) * 100
 
 # Replace negative values with NA (optional, to handle invalid data)
 percentage_unsampled[percentage_unsampled < 0] <- NA
+percentage_unsampled[is.nan(percentage_unsampled)] <- 0
+percentage_unsampled[is.na(percentage_unsampled)] <- 0
 
 # Plot
 par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
 plot(
   ma, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
   xlab = "Time (Ma)", ylab = "% of unsampled biome area",
-  ylim = c(60, 100), xaxt = "n"
+  ylim = c(60,100), xaxt = "n"
 )
 axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
 
