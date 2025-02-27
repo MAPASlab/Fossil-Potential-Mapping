@@ -14,6 +14,7 @@ library(terra)
 library(rgplates)
 library(sf)
 library(maps)
+library(dplyr)
 source("support_functions.R")
 
 ########################
@@ -114,7 +115,8 @@ for (i in (1:length(sediment_files))) {
 ########################
 # 3) FOSSILS
 
-fossil_data <- read.csv("./data/now_database/allfossildata_mammals_11-11-24.csv")
+setwd("../DATA")
+fossil_data <- read.csv("fossil_data/pbdb_data_27-02-25processed.csv")
 
 #str(fossil_data)
 #head(fossil_data)
@@ -174,7 +176,7 @@ for (i in 1:length(tiempos)){
 
 # plot the sediments for the 15 periods
 
-dir <- "./data/possible_fossil_reconstructed_dissolved"
+dir <- "possible_fossil_reconstructed_dissolved"
 complete_paths <- file.path(dir, sediment_files)
 shp_list <- lapply(complete_paths, st_read) # load shp into a list
 
@@ -197,7 +199,6 @@ for (i in seq_along(shp_list)) {
   axis(2, at = c(-50, 0, 50), labels = c("-50", "0", "50"), las = 2) 
   box()
 }
-
 
 
 # plot T-P diagram with world, sediments and fossils data
@@ -289,7 +290,7 @@ legend("center", legend = biome_labels, fill = biome_colors, bty = "n", cex = 1.
 # Rasterise the reconstructed sediment shapefiles for each period
 sed_ras <- rast()
 for (i in 1:15) {
-  shapefile <- read_sf(file.path("./data/possible_fossil_reconstructed_dissolved", paste0("possible_fossil_recons_", ma [i], "Ma_dissolved.shp")))
+  shapefile <- read_sf(file.path("possible_fossil_reconstructed_dissolved", paste0("possible_fossil_recons_", ma [i], "Ma_dissolved.shp")))
   ras <- rasterize (x = shapefile, y = biomes_stack[[1]])
   sed_ras <- c (sed_ras, ras)
 }
@@ -300,7 +301,7 @@ for (i in 1:15) {
 #AREA TOTAL BIOMES VS SEDIMENTS BIOMES
 
 # Define the path to the directory containing the reconstructed sediment data.
-setwd("./data/possible_fossil_reconstructed_dissolved")
+setwd("possible_fossil_reconstructed_dissolved")
 
 # Calculate the area of the cells in 100 million km2
 area_rast <- cellSize(biomes_stack[[i]]) / 100000000
@@ -397,7 +398,6 @@ for (i in 1:5) {
     )
   }
 }
-
 
 ########################
 #% OF NON SAMPLED BIOME AREA
