@@ -500,3 +500,4 @@ legend(
   "bottomright", legend = biome_names, col = biome_colors,
   lwd = 2, bty = "n"
 )
+
