@@ -501,3 +501,68 @@ legend(
   lwd = 2, bty = "n"
 )
 
+########################
+#ACCUMULATED BARPLOTS OF %
+biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
+biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
+
+#climate distribution across time (%)
+total_area_climate <- res[1:5, ]
+sum_area_climate<- colSums(total_area_climate)
+perc_total_climate<- round (sweep(total_area_climate, 2, sum_area_climate, `/`)*100, 2)
+
+colSums((perc_total_climate))
+#colnames (perc_total_climate)<- c(tiempos, "69")
+row.names(perc_total_climate)<- c(biome_names)
+perc_total_climate[!is.finite(perc_total_climate)] <- 0
+
+barplot(perc_total_climate, col=biome_colors, border="white", xlab="Time", ylab="%", main="World climate")
+legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
+
+#SEDIMENTS distribution across time (%)
+total_area_sediments <- res[11:15, ]
+sum_area_sediments<- colSums(total_area_sediments)
+perc_total<- round (sweep(total_area_sediments, 2, sum_area_sediments, `/`)*100, 2)
+
+#colnames (total_area_sediments )<- c(tiempos, "69")
+row.names(total_area_sediments )<- c(biome_names)
+perc_total[!is.finite(total_area_sediments )] <- 0
+
+
+barplot(perc_total, col=biome_colors, border="white", xlab="Time", ylab="%", main="Sediments")
+legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
+
+#FOSSIL RECORD distribution across time (%)
+for (i in 1:length(tiempos)){
+  # create a mask for time
+  tiempos_mask <- fossil_data$ma==tiempos [i]
+  fossil_data$biomes [tiempos_mask]<- extract (biomes_stack_fixed [[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
+}
+
+fossils<- data.frame (ma=fossil_data$ma, biomes=fossil_data$biomes)
+fossils<- fossils [complete.cases (fossils), ]
+
+df_fossils<- fossils %>%
+  group_by (biomes, ma) %>%
+  summarise (n())
+
+
+# arreglar excel a mano
+amano<- df_fossils [order(df_fossils$ma), ]
+v<- rep (c(1:5), 15)
+
+getwd()
+write.table (amano, "df_1.csv", sep=",", row.names= F)
+
+fossil_raw<- read.table ("df_1.csv", sep=",", header=T, row.names = 1)
+###
+
+sum_area_fossils<- colSums (fossil_raw)
+perc_total_fossils<- round (sweep(fossil_raw, 2, sum_area_fossils, `/`)*100, 2)
+perc_total_fossils<- as.matrix (perc_total_fossils)
+colnames (fossil_raw)<- c(tiempos)
+row.names(fossil_raw)<- c(biome_names)
+
+barplot(perc_total_fossils, col=biome_colors, border="white", xlab="Time", ylab="%", main="Fossil data")
+legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
+
