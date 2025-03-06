@@ -15,6 +15,7 @@ library(rgplates)
 library(sf)
 library(maps)
 library(dplyr)
+library(tidyr)
 source("support_functions.R")
 
 ########################
@@ -184,8 +185,8 @@ tiempos <- sort (unique (fossil_data$ma))
 for (i in 1:length(tiempos)){
   # create a mask for time
   tiempos_mask <- fossil_data$ma==tiempos [i]
-  fossil_data$temp [tiempos_mask]<- extract (world_temp [[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
-  fossil_data$prec [tiempos_mask]<- extract (world_prec[[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
+  fossil_data$temp [tiempos_mask]<- terra::extract (world_temp [[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
+  fossil_data$prec [tiempos_mask]<- terra::extract (world_prec[[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
 }
 
 ########################
@@ -193,7 +194,7 @@ for (i in 1:length(tiempos)){
 
 # plot the sediments for the 15 periods
 
-dir <- "possible_fossil_reconstructed_dissolved"
+dir <- "./possible_fossil_reconstructed_dissolved"
 complete_paths <- file.path(dir, sediment_files)
 shp_list <- lapply(complete_paths, st_read) # load shp into a list
 
@@ -248,55 +249,6 @@ for (i in 1:14){
            fossil_data$prec [fossil_data$ma == tiempos [i]], 
            main=ma[[i]], na.rm=T, ylim=c(0, 1500), names = c("Wrld", "Sedi", "Foss"))
 }
-
-# evolution of boxplot medians over time
-par(mfrow = c(2, 1))
-
-# TEMPERATURE MEDIANS
-# vector for storing medians
-median_allextract <- numeric(14)
-median_fossil <- numeric(14)
-
-# calculate medians for each period
-for (i in 1:14) {
-  median_allextract[i] <- median(allextract_temp[[i]][,1], na.rm = TRUE)
-  median_fossil[i] <- median(fossil_data$temp[fossil_data$ma == tiempos[i]], na.rm = TRUE)
-}
-
-# plot
-plot(tiempos, median_allextract, type = "l", col = "blue", lty = 1, ylim = range(c(median_allextract, median_fossil), na.rm = TRUE),
-     ylab = "Temperature median", xlab = "Tiempo (Ma)", axes = FALSE)
-lines(tiempos, median_fossil, col = "red", pch = 16, lty = 1)
-
-axis(1) # add axis separately
-axis(2)
-
-abline(h = 0, col = "black") # add line to value 0
-
-legend("bottomright", legend = c("allextract_temp", "fossil_data"), col = c("blue", "red"), lty = 1, bty = "n")
-
-# PRECIPITATION MEDIANS
-# vector for storing medians
-median_allextract_prec <- numeric(14)
-median_fossil_prec <- numeric(14)
-
-# calculate medians for each period
-for (i in 1:14) {
-  median_allextract_prec[i] <- median(allextract_prec[[i]][,1], na.rm = TRUE)
-  median_fossil_prec[i] <- median(fossil_data$prec[fossil_data$ma == tiempos[i]], na.rm = TRUE)
-}
-
-# plot
-plot(tiempos, median_allextract_prec, type = "l", col = "blue", lty = 1, ylim = range(c(median_allextract_prec, median_fossil_prec), na.rm = TRUE),
-     ylab = "Precipitation median", xlab = "Tiempo (Ma)", axes = FALSE)
-lines(tiempos, median_fossil_prec, col = "red", lty = 1)
-
-axis(1) # add axis separately
-axis(2)
-
-abline(h = 0, col = "black") # add line to value 0
-
-legend("bottomright", legend = c("allextract_prec", "fossil_data"), col = c("blue", "red"), lty = 1, bty = "n")
 
 ########################
 #BIOMES RECLASSIFICATION
@@ -378,7 +330,7 @@ plot(area_rast)
 res <- matrix(0, 15, 15)
 
 # Loop to quantify the area of sediments and biomes in different time periods
-for (i in 2:15) {
+for (i in 1:15) {
   shapefile <- read_sf(paste0("possible_fossil_recons_", ma[i], "Ma_dissolved.shp"))
   sed_raster <- rasterize(shapefile, area_rast)
   sed_raster[is.na(sed_raster[])] <- 0
@@ -395,7 +347,7 @@ for (i in 2:15) {
   res[res_final[, 1], i] <- res_final[, 2]
 }
 
-# Initialise lists to store areas of different biomes in different time periods.
+# Initialise vectors to store areas of different biomes in different time periods.
 tropical <- c()
 arid <- c()
 temperate <- c()
@@ -403,30 +355,32 @@ cold <- c()
 polar <- c()
 
 # Loop to calculate the area of each type of biome
-for (i in 2:15) {
-  tropicals <- res[i, 1] + res[i, 6]
-  arids <- res[i, 2] + res[i, 7]
-  temperates <- res[i, 3] + res[i, 8]
-  colds <- res[i, 4] + res[i, 9]
+for (i in 1:15) {
+  tropicals <- res[1, i] + res[11, i]
+  arids <- res[2, i] + res[12, i]
+  temperates <- res[3, i] + res[13, i]
+  colds <- res[4, i] + res[14, i]
   
   # Check if index 10 is not NA to calculate polar biomes
-  if (!is.na(res[i, 10])) {
-    polars <- res[i, 5] + res[i, 10]
+  if (!is.na(res[5, i])) {
+    polars <- res[5, i] + res[15, i]
+  } else {
+    polars <-0
   }
   
-  # We store the results in the respective lists
-  tropical <- c(tropicals, tropical)
-  arid <- c(arids, arid)
-  temperate <- c(temperates, temperate)
-  cold <- c(colds, cold)
-  polar <- c(polars, polar)
+  # We store the results in the respective vector
+  tropical <- c(tropical, tropicals)
+  arid <- c(arid, arids)
+  temperate <- c(temperate, temperates)
+  cold <- c(cold, colds)
+  polar <- c(polar, polars)
 }
 
 # Define the names of the biomes for visualisation
 biome_names <- c("tropical", "arid", "temperate", "cold", "polar")
 
 # Calculate the sediments area (already stored in res[11:15, ])
-total_area <- res[1:5, ]
+total_area <- res[1:5, ] + res[11:15, ]
 sediments_area <- res[11:15, ]
 
 # Plot
@@ -476,17 +430,15 @@ biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
 # Calculate percentage of unsampled area
 percentage_unsampled <- ((total_area - sediments_area) / total_area) * 100
 
-# Replace negative values with NA (optional, to handle invalid data)
-percentage_unsampled[percentage_unsampled < 0] <- NA
-percentage_unsampled[is.nan(percentage_unsampled)] <- 0
-percentage_unsampled[is.na(percentage_unsampled)] <- 0
+# Replace NAN with NA
+percentage_unsampled[is.nan(percentage_unsampled)] <- NA
 
-# Plot
+# OPTION 1: Plot with polar line
 par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
 plot(
   ma, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
   xlab = "Time (Ma)", ylab = "% of unsampled biome area",
-  ylim = c(60,100), xaxt = "n"
+  ylim = c(35,100), xaxt = "n"
 )
 axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
 
@@ -501,68 +453,96 @@ legend(
   lwd = 2, bty = "n"
 )
 
+# OPTION 2: Plot without polar line, for better visualization of lines for the other biomes by removing the last row (i.e. polar data) of the df
+percentage_unsampled2 <- percentage_unsampled[-5,]
+par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
+plot(
+  ma, percentage_unsampled2[1, ], type = "l", col = biome_colors[1], lwd = 2,
+  xlab = "Time (Ma)", ylab = "% of unsampled biome area",
+  ylim = c(70,100), xaxt = "n"
+)
+axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
+
+# Add lines for the other biomes
+for (i in 2:nrow(percentage_unsampled2)) {
+  lines(ma, percentage_unsampled2[i, ], col = biome_colors[i], lwd = 2)
+}
+
+# Add legend
+legend(
+  "bottomright", legend = biome_names, col = biome_colors,
+  lwd = 2, bty = "n"
+)
+
 ########################
 #ACCUMULATED BARPLOTS OF %
 biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
 biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
 
 #climate distribution across time (%)
-total_area_climate <- res[1:5, ]
+# total_area_climate <- res[1:5, ] + res[11:15, ]
+total_area_climate <- total_area
 sum_area_climate<- colSums(total_area_climate)
 perc_total_climate<- round (sweep(total_area_climate, 2, sum_area_climate, `/`)*100, 2)
 
-colSums((perc_total_climate))
-#colnames (perc_total_climate)<- c(tiempos, "69")
+colSums(perc_total_climate)
+colnames (perc_total_climate)<- tiempos
 row.names(perc_total_climate)<- c(biome_names)
-perc_total_climate[!is.finite(perc_total_climate)] <- 0
 
+par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
 barplot(perc_total_climate, col=biome_colors, border="white", xlab="Time", ylab="%", main="World climate")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
 
 #SEDIMENTS distribution across time (%)
-total_area_sediments <- res[11:15, ]
+# total_area_sediments <- res[11:15, ]
+total_area_sediments <-sediments_area 
 sum_area_sediments<- colSums(total_area_sediments)
-perc_total<- round (sweep(total_area_sediments, 2, sum_area_sediments, `/`)*100, 2)
+perc_total_sediments<- round (sweep(total_area_sediments, 2, sum_area_sediments, `/`)*100, 2)
 
-#colnames (total_area_sediments )<- c(tiempos, "69")
+colnames (total_area_sediments )<- tiempos
 row.names(total_area_sediments )<- c(biome_names)
-perc_total[!is.finite(total_area_sediments )] <- 0
 
-
-barplot(perc_total, col=biome_colors, border="white", xlab="Time", ylab="%", main="Sediments")
+barplot(perc_total_sediments, col=biome_colors, border="white", xlab="Time", ylab="%", main="Sediments")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
 
 #FOSSIL RECORD distribution across time (%)
-for (i in 1:length(tiempos)){
-  # create a mask for time
-  tiempos_mask <- fossil_data$ma==tiempos [i]
-  fossil_data$biomes [tiempos_mask]<- extract (biomes_stack_fixed [[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
+for (i in 1:length(tiempos)) {
+  # Create a mask for the current time period
+  tiempos_mask <- fossil_data$ma == tiempos[i]
+  fossil_data$biomes[tiempos_mask] <- terra::extract(biomes_stack_fixed[[i]], fossil_data[tiempos_mask, 9:10])[, 2]
 }
 
-fossils<- data.frame (ma=fossil_data$ma, biomes=fossil_data$biomes)
-fossils<- fossils [complete.cases (fossils), ]
+# Create df with time period (ma) and biomes
+fossils <- data.frame(ma = fossil_data$ma, biomes = fossil_data$biomes)
 
-df_fossils<- fossils %>%
-  group_by (biomes, ma) %>%
-  summarise (n())
+# Remove rows with missing values
+fossils <- fossils[complete.cases(fossils), ]
 
+# Count the number of fossils per biome and time period
+df_fossils <- fossils %>%
+  group_by(biomes, ma) %>%
+  summarise(n())
 
-# arreglar excel a mano
-amano<- df_fossils [order(df_fossils$ma), ]
-v<- rep (c(1:5), 15)
+# Rename the third column to "n"
+colnames(df_fossils)[3] <- "n"
 
-getwd()
-write.table (amano, "df_1.csv", sep=",", row.names= F)
+# Convert the data to a wide format (time periods as columns)
+df_wide <- df_fossils %>%
+  ungroup() %>% 
+  pivot_wider(names_from = ma, values_from = n, values_fill = 0)  
 
-fossil_raw<- read.table ("df_1.csv", sep=",", header=T, row.names = 1)
-###
+colnames(df_wide)
 
-sum_area_fossils<- colSums (fossil_raw)
-perc_total_fossils<- round (sweep(fossil_raw, 2, sum_area_fossils, `/`)*100, 2)
-perc_total_fossils<- as.matrix (perc_total_fossils)
-colnames (fossil_raw)<- c(tiempos)
-row.names(fossil_raw)<- c(biome_names)
+# Calculate the total number of fossils per time period
+sum_area_fossils <- colSums(df_wide)
+
+# Calculate % of fossils per biome and time period
+perc_total_fossils <- round(sweep(df_wide, 2, sum_area_fossils, `/`) * 100, 2)
+
+# Exclude the 1st column (biomes)
+perc_total_fossils <- as.matrix(perc_total_fossils[, 2:16])
+#colnames (df_wide)<- c(tiempos)
+#row.names(df_wide)<- c(biome_names)
 
 barplot(perc_total_fossils, col=biome_colors, border="white", xlab="Time", ylab="%", main="Fossil data")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
-
