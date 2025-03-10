@@ -193,28 +193,31 @@ for (i in 1:length(tiempos)){
 # PLOTS
 
 # plot the sediments for the 15 periods
-
 dir <- "./possible_fossil_reconstructed_dissolved"
 complete_paths <- file.path(dir, sediment_files)
 shp_list <- lapply(complete_paths, st_read) # load shp into a list
 
 par(mfrow = c(4, 4), mar = c(3, 4, 3, 2)) # margins
 
-for (i in seq_along(shp_list)) {
+# Extract and sort ma values
+ma_values <- as.numeric(sub(".*_(\\d+)Ma.*", "\\1", basename(complete_paths)))
+order_indices <- order(ma_values)
+
+for (i in order_indices) {
   file_name <- basename(complete_paths[i])
-  ma_value <- as.numeric(sub(".*_(\\d+)Ma.*", "\\1", file_name)) # name according to age (Ma)
+  ma_value <- ma_values[i]
   bbox <- st_bbox(shp_list[[i]])
-  xlim <- c(-180, 180)
-  ylim <- c(-90, 90)    
+  xlim <- c(-150, 150)
+  ylim <- c(-90, 90)
   
-  plot(st_geometry(shp_list[[i]]), 
-       main = paste(ma_value, "Ma"), 
-       col = "black", 
-       xlim = xlim, ylim = ylim, 
-       axes = FALSE, asp = 1)
+  plot(st_geometry(shp_list[[i]]),
+       main = paste(ma_value, "Ma"),
+       col = "black",
+       xlim = xlim, ylim = ylim,
+       axes = FALSE)
   
   axis(1, at = seq(-150, 150, by = 50), labels = seq(-150, 150, by = 50), las = 1)
-  axis(2, at = c(-50, 0, 50), labels = c("-50", "0", "50"), las = 2) 
+  axis(2, at = c(-50, 0, 50), labels = c("-50", "0", "50"), las = 2)
   box()
 }
 
@@ -294,7 +297,7 @@ for (i in 1:nlyr(biomes_stack)) {
   biomes_stack_fixed[[i]] <- layer
 }
 
-par(mfrow = c(4, 4), mar = c(2, 2, 3, 1)/2) 
+par(mfrow = c(4, 4)) 
 
 for (i in 1:nlyr(biomes_stack_fixed)) {
   plot(biomes_stack_fixed[[i]], col = biome_colors, legend = FALSE, 
@@ -384,13 +387,13 @@ total_area <- res[1:5, ] + res[11:15, ]
 sediments_area <- res[11:15, ]
 
 # Plot
-par(mfrow = c(1, 5), mai = c(1, 1, 2, 0)/2)
+par(mfrow = c(1, 5))
 
 # Loop to create bar charts for each biome
 for (i in 1:5) {
   # Bar chart of total area
-  barplot(total_area[i, ],
-          names.arg = ma,  # Time period labels on the x-axis
+  barplot(rev(total_area[i, 1:14]),
+          names.arg = rev(ma[1:14]),  # Time period labels on the x-axis
           col = "gray",
           border = NA,
           main = paste(biome_names[i], "biome"),
@@ -401,8 +404,8 @@ for (i in 1:5) {
   
   # Bar chart of the sediment area
   barplot(
-    sediments_area[i, ],
-    names.arg = ma,
+    rev(sediments_area[i, 1:14]),
+    names.arg = rev(ma[1:14]),
     col = "red",
     border = NA,
     add = TRUE,
@@ -434,43 +437,39 @@ percentage_unsampled <- ((total_area - sediments_area) / total_area) * 100
 percentage_unsampled[is.nan(percentage_unsampled)] <- NA
 
 # OPTION 1: Plot with polar line
-par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
-plot(
-  ma, percentage_unsampled[1, ], type = "l", col = biome_colors[1], lwd = 2,
+par(mfrow = c(1, 1))
+matplot(
+  rev(ma), t(percentage_unsampled[, ncol(percentage_unsampled):1]), type = "l", 
+  lty = 1, lwd = 2, col = biome_colors, 
   xlab = "Time (Ma)", ylab = "% of unsampled biome area",
-  ylim = c(35,100), xaxt = "n"
+  ylim = c(35, 100), xaxt = "n", xlim = rev(range(ma)) # Force x-axis inversion
 )
-axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
 
-# Add lines for the other biomes
-for (i in 2:nrow(percentage_unsampled)) {
-  lines(ma, percentage_unsampled[i, ], col = biome_colors[i], lwd = 2)
-}
+# Add inverted x-axis labels
+axis(1, at = rev(ma), labels = rev(ma))
 
 # Add legend
 legend(
-  "bottomright", legend = biome_names, col = biome_colors,
+  "bottomleft", legend = biome_names, col = biome_colors,
   lwd = 2, bty = "n"
 )
 
 # OPTION 2: Plot without polar line, for better visualization of lines for the other biomes by removing the last row (i.e. polar data) of the df
 percentage_unsampled2 <- percentage_unsampled[-5,]
-par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
-plot(
-  ma, percentage_unsampled2[1, ], type = "l", col = biome_colors[1], lwd = 2,
+par(mfrow = c(1, 1))
+matplot(
+  rev(ma), t(percentage_unsampled2[, ncol(percentage_unsampled2):1]), type = "l", 
+  lty = 1, lwd = 2, col = biome_colors, 
   xlab = "Time (Ma)", ylab = "% of unsampled biome area",
-  ylim = c(70,100), xaxt = "n"
+  ylim = c(70, 100), xaxt = "n", xlim = rev(range(ma)) # Force x-axis inversion
 )
-axis(1, at = ma, labels = ma) # Customise X-axis with ma labels
 
-# Add lines for the other biomes
-for (i in 2:nrow(percentage_unsampled2)) {
-  lines(ma, percentage_unsampled2[i, ], col = biome_colors[i], lwd = 2)
-}
+# Add inverted x-axis labels
+axis(1, at = rev(ma), labels = rev(ma))
 
 # Add legend
 legend(
-  "bottomright", legend = biome_names, col = biome_colors,
+  "bottomleft", legend = biome_names, col = biome_colors,
   lwd = 2, bty = "n"
 )
 
@@ -488,9 +487,10 @@ perc_total_climate<- round (sweep(total_area_climate, 2, sum_area_climate, `/`)*
 colSums(perc_total_climate)
 colnames (perc_total_climate)<- tiempos
 row.names(perc_total_climate)<- c(biome_names)
+perc_total_climate_rev <- perc_total_climate[, rev(colnames(perc_total_climate))] # Reverse x-axis
 
 par(mfrow = c(1, 1), mar = c(5, 5, 4, 2))
-barplot(perc_total_climate, col=biome_colors, border="white", xlab="Time", ylab="%", main="World climate")
+barplot(perc_total_climate_rev, col=biome_colors, border="white", xlab="Time", ylab="%", main="World climate")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
 
 #SEDIMENTS distribution across time (%)
@@ -499,10 +499,11 @@ total_area_sediments <-sediments_area
 sum_area_sediments<- colSums(total_area_sediments)
 perc_total_sediments<- round (sweep(total_area_sediments, 2, sum_area_sediments, `/`)*100, 2)
 
-colnames (total_area_sediments )<- tiempos
-row.names(total_area_sediments )<- c(biome_names)
+colnames (perc_total_sediments)<- tiempos
+row.names(perc_total_sediments)<- c(biome_names)
+perc_total_sediments_rev <- perc_total_sediments[, rev(colnames(perc_total_sediments))] # Reverse x-axis
 
-barplot(perc_total_sediments, col=biome_colors, border="white", xlab="Time", ylab="%", main="Sediments")
+barplot(perc_total_sediments_rev, col=biome_colors, border="white", xlab="Time", ylab="%", main="Sediments")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
 
 #FOSSIL RECORD distribution across time (%)
@@ -541,8 +542,8 @@ perc_total_fossils <- round(sweep(df_wide, 2, sum_area_fossils, `/`) * 100, 2)
 
 # Exclude the 1st column (biomes)
 perc_total_fossils <- as.matrix(perc_total_fossils[, 2:16])
-#colnames (df_wide)<- c(tiempos)
-#row.names(df_wide)<- c(biome_names)
+row.names(perc_total_fossils)<- c(biome_names)
+perc_total_fossils_rev <- perc_total_fossils[, rev(colnames(perc_total_fossils))] # Reverse x-axis
 
-barplot(perc_total_fossils, col=biome_colors, border="white", xlab="Time", ylab="%", main="Fossil data")
+barplot(perc_total_fossils_rev, col=biome_colors, border="white", xlab="Time", ylab="%", main="Fossil data")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
