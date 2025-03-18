@@ -174,6 +174,12 @@ for (i in sort (unique (fossil_data$ma))){
                                                       age = i, model = "PALEOMAP")
 }
 
+#write.csv(fossil_data, "fossil_data_rotated.csv", row.names=TRUE)
+
+# Upload CSV file
+fossil_data <- read.csv("fossil_data_rotated.csv", row.names = 1)
+
+
 # add prec and temp data to each fossil as a function of paleolat and paleolon
 sort (unique (fossil_data$ma))
 # world_temp 
