@@ -205,6 +205,7 @@ shp_list <- lapply(complete_paths, st_read) # load shp into a list
 
 par(mfrow = c(4, 4), mar = c(3, 4, 3, 2)) # margins
 
+# extract and sort ma values
 ma_values <- as.numeric(sub(".*_(\\d+)Ma.*", "\\1", basename(complete_paths)))
 order_indices <- order(ma_values)
 
@@ -342,7 +343,6 @@ for (i in 1:length(ma)){
 # assign names to each layer of the stack according to age (in millions of years) and plot
 names (biomes_stack) <- ma
 
-# plot biomes_stack
 biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
 biome_values <- c(1, 2, 3, 4, 5)
 biome_labels <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
@@ -363,6 +363,7 @@ for (i in 1:nlyr(biomes_stack)) {
   biomes_stack_fixed[[i]] <- layer
 }
 
+# 1) plot biomes_stack
 par(mfrow = c(4, 4)) 
 
 for (i in 1:nlyr(biomes_stack_fixed)) {
@@ -383,6 +384,31 @@ for (i in 1:15) {
 }
 # warning because the first raster is empty and ignored
 
+# 2) plot 3 maps (1 for each layer used: sediments, biomes, fossils) for 1 example time (45 Ma) for material and methods
+par(mfrow = c(3, 3)) 
+
+#SEDIMENTS
+plot(biomes_stack_fixed[[10]], main = "45 Ma",
+     col = "white", legend = FALSE) #white raster as a basis
+plot(st_geometry(shp_list[[10]]), 
+     col = "black", add=T)
+
+#BIOMES
+plot(biomes_stack_fixed[[10]], 
+     col = biome_colors, legend = FALSE, 
+     main = "45 Ma")
+# plot an empty box at position 16 for legend
+#plot.new()
+#legend("center", legend = biome_labels, fill = biome_colors, bty = "n", cex = 1.2)
+
+#FOSSILS
+plot(biomes_stack_fixed[[10]], main = "45 Ma",
+     col = "white", legend = FALSE) #white raster as a basis
+plot(st_geometry(shp_list[[10]]),
+     col = "black", add=T) #sediment cover
+# Add fossils as red points
+fossil_filtered <- subset(fossil_data, ma == 45)
+points(fossil_filtered$LONG, fossil_filtered$LAT, col = "red", pch = 19, cex = 0.2)
 
 ########################
 #AREA TOTAL BIOMES VS SEDIMENTS BIOMES
