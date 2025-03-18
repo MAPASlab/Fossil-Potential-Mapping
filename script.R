@@ -639,3 +639,35 @@ perc_total_fossils_rev <- perc_total_fossils[, rev(colnames(perc_total_fossils))
 
 barplot(perc_total_fossils_rev, col=biome_colors, border="white", xlab="Time", ylab="%", main="Fossil data")
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
+
+########################
+# DELTA PLOT OF %
+
+# % SEDIMENTS VS % WORLD_CLIMATE
+# Calculate delta
+delta_climased<- round ((perc_total_sediments_rev - perc_total_climate_rev)/perc_total_climate_rev *100, 2)
+
+# Plot
+par(mfrow = c(2, 1))
+plot (colnames (delta_climased)[2:15], rev(delta_climased [1,2:15]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% sediments - % climate)", xaxt="n", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climased [2,2:15]), col="#E2A76F", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climased [3,2:15]), col="#4C72B0", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climased [4,2:15]), col="#8172B3", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climased [5,2:15]), col="#CCCCCC", lwd = 3)
+abline (h=0, col="black", lty=1)
+axis(1, at=rev(colnames(delta_climased)[2:15]), labels=rev(ma[1:14])) 
+legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC"), lwd=2, bty="n", ncol= 5)
+
+# % FOSSILS VS % WORLD_CLIMATE
+# Calculate delta
+delta_climafoss<- round ((perc_total_fossils_rev - perc_total_climate_rev)/perc_total_climate_rev *100, 2)
+
+# Plot
+plot (colnames (delta_climased)[2:15], rev(delta_climafoss [1,2:15]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% fossils - % climate)", xaxt="n", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climafoss [2,2:15]), col="#E2A76F", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climafoss [3,2:15]), col="#4C72B0", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climafoss [4,2:15]), col="#8172B3", lwd = 3)
+lines (colnames (delta_climased)[2:15], rev(delta_climafoss [5,2:15]), col="#CCCCCC", lwd = 3)
+abline (h=0, col="black", lty=1)
+axis(1, at=rev(colnames(delta_climased)[2:15]), labels=rev(ma[1:14])) 
+#legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC"), lwd=2, bty="n", ncol=5)
