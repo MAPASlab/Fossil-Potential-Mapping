@@ -198,14 +198,13 @@ for (i in 1:length(tiempos)){
 ########################
 # PLOTS
 
-# plot the sediments for the 15 periods
+# 1) plot the sediments for the 15 periods
 dir <- "./possible_fossil_reconstructed_dissolved"
 complete_paths <- file.path(dir, sediment_files)
 shp_list <- lapply(complete_paths, st_read) # load shp into a list
 
 par(mfrow = c(4, 4), mar = c(3, 4, 3, 2)) # margins
 
-# Extract and sort ma values
 ma_values <- as.numeric(sub(".*_(\\d+)Ma.*", "\\1", basename(complete_paths)))
 order_indices <- order(ma_values)
 
@@ -227,8 +226,7 @@ for (i in order_indices) {
   box()
 }
 
-
-# plot T-P diagram with world, sediments and fossils data
+# 2) plot T-P diagram with world, sediments and fossils data
 tiempos
 
 par(mfrow = c(3, 5))
@@ -240,8 +238,9 @@ for (i in 1:14){
 }
 
 
-# boxplot temp all periods
-# TODO add legend to this plot
+# 3) boxplots temp 
+
+# 3.1) all periods (for separated)
 par(mfrow = c(3, 5))
 for (i in 1:14){
   boxplot(as.vector (world_temp[[i]]), allextract_temp[[i]][,1],        
@@ -249,15 +248,76 @@ for (i in 1:14){
            main=ma[[i]], na.rm=T, ylim=c(-40, 40), names = c("Wrld", "Sedi", "Foss"))
 }
 
+# 3.2) all periods in the same timeline
+#WORLD CLIMATE
+par(mfrow = c(1, 1))
+clima_model_temp<- values (world_temp)
+colnames (clima_model_temp)<- tiempos
+clima_model_temp <- clima_model_temp[, rev(order(as.numeric(colnames(clima_model_temp))))]
+#boxplot (clima_model_temp[,2:15], col="lightgrey", border="black")
 
-# boxplot prec all periods
-# TODO add legend to this plot
+#SEDIMENTS
+sedi<- allextract_temp
+clima_sed_temp<- list ()
+for (i in 1:15){
+  clima_sed_temp [[i]]<- sedi[[i]][,1] 
+}
+clima_sed_temp<- as.data.frame(do.call(cbind, clima_sed_temp)) # warning message
+names (clima_sed_temp)<- tiempos
+clima_sed_temp <- clima_sed_temp[rev(order(as.numeric(names(clima_sed_temp))))]
+#boxplot (clima_sed_temp[2:15], col="lightgrey", border="black")
+
+#FOSSILS
+fossil_data_temp<-data.frame(ma=fossil_data$ma, temp=fossil_data$temp)
+fossil_data_temp<- subset(fossil_data_temp, ma <= 66) #without 69 Ma data
+fossil_data_temp$ma <- factor(fossil_data_temp$ma, levels = rev(sort(unique(fossil_data_temp$ma)))) #order ma in descending order
+#boxplot(temp ~ ma, data = fossil_data_temp, col="lightgrey", border="black")
+
+#Plot
+par(mfrow = c(3, 1))
+boxplot (clima_model_temp[,2:15], col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
+boxplot (clima_sed_temp[2:15], col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
+boxplot(temp ~ ma, data = fossil_data_temp, col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
+
+# 4) boxplots prec 
+
+# 4.1) all periods (for separated)
 par(mfrow = c(3, 5))
 for (i in 1:14){
   boxplot (as.vector (world_prec[[i]]), allextract_prec[[i]][,1],
            fossil_data$prec [fossil_data$ma == tiempos [i]], 
            main=ma[[i]], na.rm=T, ylim=c(0, 1500), names = c("Wrld", "Sedi", "Foss"))
 }
+
+# 4.2) all periods in the same timeline
+#WORLD CLIMATE
+clima_model_prec<- values (world_prec)
+colnames (clima_model_prec)<- tiempos
+clima_model_prec <- clima_model_prec[, rev(order(as.numeric(colnames(clima_model_prec))))]
+#boxplot (clima_model_prec, col="lightgrey", border="black")
+
+#SEDIMENTS
+preci<- allextract_prec
+clima_sed_prec<- list ()
+for (i in 1:15){
+  clima_sed_prec [[i]]<- preci[[i]][,1] 
+}
+clima_sed_prec<- as.data.frame(do.call(cbind, clima_sed_prec)) #warning message
+names (clima_sed_prec)<- tiempos
+clima_sed_prec <- clima_sed_prec[rev(order(as.numeric(names(clima_sed_prec))))]
+#boxplot (clima_sed_prec[2:15], col="lightgrey", border="black")
+
+#FOSSILS
+fossil_data_prec<-data.frame(ma=fossil_data$ma, prec=fossil_data$prec)
+fossil_data_prec<- subset(fossil_data_prec, ma <= 66) #without 69 Ma data
+fossil_data_prec$ma <- factor(fossil_data_prec$ma, levels = rev(sort(unique(fossil_data_prec$ma)))) #order ma in descending order
+#boxplot(prec ~ ma, data = fossil_data_prec, col="lightgrey", border="black")
+
+#plot
+par(mfrow = c(3, 1))
+boxplot (clima_model_prec[,2:15],col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="World climate", outline=FALSE) 
+boxplot (clima_sed_prec[2:15],col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
+boxplot (prec~ma, data=fossil_data_prec, col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
 
 ########################
 #BIOMES RECLASSIFICATION
