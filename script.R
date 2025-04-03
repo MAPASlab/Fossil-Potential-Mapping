@@ -115,69 +115,70 @@ for (i in (1:length(sediment_files))) {
 
 ########################
 # 3) FOSSILS
-
-setwd("../DATA")
-fossil_data <- read.csv("fossil_data/pbdb_data_27-02-25processed.csv")
-
-#str(fossil_data)
-#head(fossil_data)
-#summary(fossil_data)
-
-# define the period limits (to reclassify the fossils within our working periods)
-periods <- setNames(lapply(ma, function(x) {
-  if (x==0){c(0,0.01)}
-  else if (x==3){c(x - 0.2, x + 0.2)}
-  else { c(x - 1, x + 1)}
-}), as.character(ma))
-
-periods <- list(
-  "0" = c(0, 0.01),          
-  "3" = c(2.8, 3.2),         
-  "11" = c(10, 12),          
-  "15" = c(14, 16),          
-  "20" = c(19, 21),          
-  "26" = c(25, 27),          
-  "31" = c(30, 32),          
-  "36" = c(35, 37),          
-  "40" = c(39, 41),          
-  "45" = c(44, 46),          
-  "52" = c(51, 53),          
-  "56" = c(55, 57),          
-  "61" = c(60, 62),          
-  "66" = c(65, 67),          
-  "69" = c(68, 70))
-
-# reclassify the fossils to the period (ma) that corresponds to our conditions
-
-fossil_data$ma <- NA
-for (i in 1:15) {
-  fossil_data$ma[fossil_data$MIN_AGE >= min(periods[[i]]) & fossil_data$MAX_AGE <= max(periods[[i]])] <- names(periods[i])
-  fossil_data$ma[fossil_data$MIN_AGE <= max(periods[[i]]) & fossil_data$MAX_AGE >= min(periods[[i]])] <- names(periods[i])
-}
-
-
-# convert fossil to work
-fossil_data<- as.data.frame (fossil_data)
-str (fossil_data)
-fossil_data$ma<- as.numeric (as.character (fossil_data$ma))
-fossil_data_old<- fossil_data
-fossil_data<- fossil_data_old [complete.cases (fossil_data_old), ]
-
-# apply palaeorotations (rgplates) to all fossil occurances (palaeolat and palaeolon)
-fossil_data$paleolong<- NA
-fossil_data$paleolat<- NA
-names (fossil_data)
-
-
-for (i in sort (unique (fossil_data$ma))){
-  fossil_data [fossil_data$ma==i, 9:10]<- reconstruct(fossil_data [fossil_data$ma==i, 4:3], 
-                                                      age = i, model = "PALEOMAP")
-}
-
-#write.csv(fossil_data, "fossil_data_rotated.csv", row.names=TRUE)
+ 
+setwd("./data/fossils")
+# fossil_data <- read.csv("pbdb_data_27-02-25processed.csv")
+# 
+# str(fossil_data)
+# head(fossil_data)
+# #summary(fossil_data)
+# 
+# # define the period limits (to reclassify the fossils within our working periods)
+# periods <- setNames(lapply(ma, function(x) {
+#   if (x==0){c(0,0.01)}
+#   else if (x==3){c(x - 0.2, x + 0.2)}
+#   else { c(x - 1, x + 1)}
+# }), as.character(ma))
+# 
+# periods <- list(
+#   "0" = c(0, 0.01),          
+#   "3" = c(2.8, 3.2),         
+#   "11" = c(10, 12),          
+#   "15" = c(14, 16),          
+#   "20" = c(19, 21),          
+#   "26" = c(25, 27),          
+#   "31" = c(30, 32),          
+#   "36" = c(35, 37),          
+#   "40" = c(39, 41),          
+#   "45" = c(44, 46),          
+#   "52" = c(51, 53),          
+#   "56" = c(55, 57),          
+#   "61" = c(60, 62),          
+#   "66" = c(65, 67),          
+#   "69" = c(68, 70))
+# 
+# # reclassify the fossils to the period (ma) that corresponds to our conditions
+# 
+# fossil_data$ma <- NA
+# for (i in 1:15) {
+#   fossil_data$ma[fossil_data$MIN_AGE >= min(periods[[i]]) & fossil_data$MAX_AGE <= max(periods[[i]])] <- names(periods[i])
+#   fossil_data$ma[fossil_data$MIN_AGE <= max(periods[[i]]) & fossil_data$MAX_AGE >= min(periods[[i]])] <- names(periods[i])
+# }
+# 
+# 
+# # convert fossil to work
+# fossil_data<- as.data.frame (fossil_data)
+# str (fossil_data)
+# fossil_data$ma<- as.numeric (as.character (fossil_data$ma))
+# fossil_data_old<- fossil_data
+# fossil_data<- fossil_data_old [complete.cases (fossil_data_old), ]
+# 
+# # apply palaeorotations (rgplates) to all fossil occurances (palaeolat and palaeolon)
+# fossil_data$paleolong<- NA
+# fossil_data$paleolat<- NA
+# names (fossil_data)
+# 
+# 
+# for (i in sort (unique (fossil_data$ma))){
+#   fossil_data [fossil_data$ma==i, 8:9]<- reconstruct(fossil_data [fossil_data$ma==i, 4:3], 
+#                                                       age = i, model = "PALEOMAP")
+# }
+# 
+# write.csv(fossil_data, "fossil_data_rotated.csv", row.names=TRUE)
 
 # Upload CSV file
 fossil_data <- read.csv("fossil_data_rotated.csv", row.names = 1)
+fossil_data <- read.csv("../fossils/fossil_data_rotated.csv", row.names = 1)
 
 
 # add prec and temp data to each fossil as a function of paleolat and paleolon
@@ -191,15 +192,16 @@ tiempos <- sort (unique (fossil_data$ma))
 for (i in 1:length(tiempos)){
   # create a mask for time
   tiempos_mask <- fossil_data$ma==tiempos [i]
-  fossil_data$temp [tiempos_mask]<- terra::extract (world_temp [[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
-  fossil_data$prec [tiempos_mask]<- terra::extract (world_prec[[i]], fossil_data[tiempos_mask ,9:10 ])[, 2]
+  fossil_data$temp [tiempos_mask]<- terra::extract (world_temp [[i]], fossil_data[tiempos_mask, 8:9 ])[, 2]
+  fossil_data$prec [tiempos_mask]<- terra::extract (world_prec[[i]], fossil_data[tiempos_mask, 8:9 ])[, 2]
 }
 
 ########################
 # PLOTS
 
 # 1) plot the sediments for the 15 periods
-dir <- "./possible_fossil_reconstructed_dissolved"
+setwd("../possible_fossil_reconstructed_dissolved")
+dir <- "./"
 complete_paths <- file.path(dir, sediment_files)
 shp_list <- lapply(complete_paths, st_read) # load shp into a list
 
@@ -228,8 +230,6 @@ for (i in order_indices) {
 }
 
 # 2) plot T-P diagram with world, sediments and fossils data
-tiempos
-
 par(mfrow = c(3, 5))
 for (i in 1:14){
   plot (world_temp[[i]], world_prec[[i]], xlim=c(-40, 40), ylim=c(0,6000), main=ma[[i]])
@@ -240,7 +240,6 @@ for (i in 1:14){
 
 
 # 3) boxplots temp 
-
 # 3.1) all periods (for separated)
 par(mfrow = c(3, 5))
 for (i in 1:14){
@@ -249,7 +248,7 @@ for (i in 1:14){
            main=ma[[i]], na.rm=T, ylim=c(-40, 40), names = c("Wrld", "Sedi", "Foss"))
 }
 
-# 3.2) all periods in the same timeline
+# 3.2) all periods in the same timeline (separated)
 #WORLD CLIMATE
 par(mfrow = c(1, 1))
 clima_model_temp<- values (world_temp)
@@ -276,12 +275,91 @@ fossil_data_temp$ma <- factor(fossil_data_temp$ma, levels = rev(sort(unique(foss
 
 #Plot
 par(mfrow = c(3, 1))
-boxplot (clima_model_temp[,2:15], col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
-boxplot (clima_sed_temp[2:15], col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
-boxplot(temp ~ ma, data = fossil_data_temp, col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
+boxplot (clima_model_temp[,2:15], col="grey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
+boxplot (clima_sed_temp[2:15], col="#FFDAB9", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
+boxplot(temp ~ ma, data = fossil_data_temp, col="#8B7765", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
+
+# 3.3) all periods in the same timeline (together)
+#WORLD CLIMATE
+clima_model_temp2 <- as.data.frame(clima_model_temp[, 2:15])
+
+cl_mo_t <- data.frame()
+for (i in colnames(clima_model_temp2)) {
+  v <- data.frame(value = clima_model_temp2[, i], year = i, source = "model")
+  cl_mo_t <- rbind(cl_mo_t, v)
+}
+#str(cl_mo_t)
+
+#SEDIMENTS
+clima_sed_temp2 <- clima_sed_temp[, 2:15]
+
+cl_se_t <- data.frame()
+for (i in colnames(clima_sed_temp2)) {
+  v <- data.frame(value = clima_sed_temp2[, i], year = i, source = "sediment")
+  cl_se_t <- rbind(cl_se_t, v)
+}
+#str(cl_se_t)
+
+# FOSSILS
+df_fossil <- fossil_data_temp     
+ma <- sort(unique(df_fossil$ma))  
+
+le_fossil <- c()
+for (i in ma) {
+  da <- df_fossil[which (df_fossil$ma == i), ]
+  le_fossil <- c(le_fossil, nrow(da))
+}
+
+# Create a data frame with a column 'n' ranging from 1 to max occurrences
+dat_fossil <- data.frame(n = 1:max(le_fossil))
+
+for (i in ma) {
+  da <- df_fossil[which (df_fossil$ma == i), 2]
+  length(da) <- max(le_fossil)
+  dat_fossil <- cbind (dat_fossil, da)
+}
+
+fossil_data_temp2 <- dat_fossil[, -1]
+colnames(fossil_data_temp2) <- ma
+#str(fossil_data_prec2)
+#dim(fossil_data_prec2)
+
+fo_t <- data.frame()
+for (i in colnames(fossil_data_temp2)) {
+  v <- data.frame(value = fossil_data_temp2[, i], year = rep(i, nrow(fossil_data_temp2)), source = rep ("fossil", nrow (fossil_data_temp2)))
+  fo_t <- rbind(fo_t, v)
+}
+#str(cl_fo_pr)
+
+
+#Put the 3 data together
+all_temp2 <- rbind (cl_mo_t, cl_se_t, fo_t)
+#str(all_prec2)
+all_temp2$year <- factor(all_temp2$year, levels = unique (all_temp2$year))
+all_temp2$source <- factor(all_temp2$source, levels = c ("model", "sediment", "fossil"))
+
+# vector for plot spacing
+v <- c()
+for (i in seq (1, 54, 4)) {
+  v <- c (v, i:(i+2))
+}
+
+# vector for ma (axis titles)
+vl <- c()
+for (i in rev(ma[1:14])) {
+  j <- c("", i, "")
+  vl <- c(vl, j )
+}
+
+#Plot
+cols = c ("model" = "white", "sediment" = "#FFDAB9" , "fossil" = "#8B7765")
+
+par(mfrow = c(1, 1))
+boxplot (value ~ source + year, data=all_temp2, at = v,
+         names = rev(vl),col=cols, ylim=c(-45, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="ALL", outline=FALSE)
+legend("bottomleft", fill = cols, legend = c("model", "sediment", "fossil"), horiz = T, bty = "n")
 
 # 4) boxplots prec 
-
 # 4.1) all periods (for separated)
 par(mfrow = c(3, 5))
 for (i in 1:14){
@@ -317,8 +395,89 @@ fossil_data_prec$ma <- factor(fossil_data_prec$ma, levels = rev(sort(unique(foss
 #plot
 par(mfrow = c(3, 1))
 boxplot (clima_model_prec[,2:15],col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="World climate", outline=FALSE) 
-boxplot (clima_sed_prec[2:15],col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
-boxplot (prec~ma, data=fossil_data_prec, col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
+boxplot (clima_sed_prec[2:15],col="#FFDAB9", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
+boxplot (prec~ma, data=fossil_data_prec, col= "#8B7765", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
+
+# 4.3) all periods in the same timeline (together)
+#WORLD CLIMATE
+clima_model_prec2 <- as.data.frame(clima_model_prec[, 2:15])
+
+cl_mo_pr <- data.frame()
+for (i in colnames(clima_model_prec2)) {
+  v <- data.frame(value = clima_model_prec2[, i], year = rep(i, nrow(clima_model_prec2)), source = rep ("model", nrow (clima_model_prec2)))
+  cl_mo_pr <- rbind(cl_mo_pr, v)
+}
+#str(cl_mo_pr)
+
+#SEDIMENTS
+clima_sed_prec2 <- clima_sed_prec[, 2:15]
+
+cl_se_pr <- data.frame()
+for (i in colnames(clima_sed_prec2)) {
+  v <- data.frame(value = clima_sed_prec2[, i], year = rep(i, nrow(clima_sed_prec2)), source = rep ("sediment", nrow (clima_sed_prec2)))
+  cl_se_pr <- rbind(cl_se_pr, v)
+}
+#str(cl_se_pr)
+
+# FOSSILS
+df_fossil <- fossil_data_prec      
+ma <- sort(unique(df_fossil$ma))  
+
+le_fossil <- c()
+for (i in ma) {
+  da <- df_fossil[which (df_fossil$ma == i), ]
+  le_fossil <- c(le_fossil, nrow(da))
+}
+
+dat_fossil <- data.frame(n = 1:max(le_fossil))
+for (i in ma) {
+  da <- df_fossil[which (df_fossil$ma == i), 2]
+  length(da) <- max(le_fossil)
+  dat_fossil <- cbind (dat_fossil, da)
+}
+fossil_data_prec2 <- dat_fossil[, -1]
+colnames(fossil_data_prec2) <- ma
+#str(fossil_data_prec2)
+#dim(fossil_data_prec2)
+
+cl_fo_pr <- data.frame()
+for (i in colnames(fossil_data_prec2)) {
+  v <- data.frame(value = fossil_data_prec2[, i], year = i, source = "fossil")
+  cl_fo_pr <- rbind(cl_fo_pr, v)
+}
+#str(cl_fo_pr)
+
+
+#Put the 3 data together
+all_prec2 <- rbind (cl_mo_pr, cl_se_pr, cl_fo_pr)
+#str(all_prec2)
+all_prec2$year <- factor(all_prec2$year, levels = unique (all_prec2$year))
+all_prec2$source <- factor(all_prec2$source, levels = c ("model", "sediment", "fossil"))
+
+
+#Plot
+cols = c ("model" = "white", "sediment" = "#FFDAB9" , "fossil" = "#8B7765")
+
+v <- c()
+for (i in seq (1, 54, 4)) {
+  v <- c (v, i:(i+2))
+}
+v
+
+vl <- c()
+for (i in rev(ma[1:14])) {
+  j <- c("", i, "")
+  vl <- c(vl, j )
+}
+vl
+
+par(mfrow = c(1, 1))
+boxplot (value ~ source + year, data=all_prec2, 
+         at = v,
+         names = rev(vl), 
+         xaxs = FALSE,
+         col=cols, ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="ALL", outline=FALSE)
+legend("top", fill = cols, legend = c("model", "sediment", "fossil"), horiz = T, bty = "n")
 
 ########################
 #BIOMES RECLASSIFICATION
@@ -341,7 +500,7 @@ for (i in 1:length(ma)){
 # warning because the first raster is empty and ignored
 
 # assign names to each layer of the stack according to age (in millions of years) and plot
-names (biomes_stack) <- ma
+names (biomes_stack) <- rev(ma)
 
 biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
 biome_values <- c(1, 2, 3, 4, 5)
@@ -371,14 +530,17 @@ for (i in 1:nlyr(biomes_stack_fixed)) {
        main = paste(names(biomes_stack_fixed)[i], "Ma"))
 }
 # plot an empty box at position 16 for legend
+par(mar = c(0, 0, 0, 0))
 plot.new()
 legend("center", legend = biome_labels, fill = biome_colors, bty = "n", cex = 1.2)
 
 
 # Rasterise the reconstructed sediment shapefiles for each period
+setwd("../possible_fossil_reconstructed_dissolved")
+## tiempos is the vector with all the periods (69 ma included)
 sed_ras <- rast()
 for (i in 1:15) {
-  shapefile <- read_sf(file.path("possible_fossil_reconstructed_dissolved", paste0("possible_fossil_recons_", ma [i], "Ma_dissolved.shp")))
+  shapefile <- read_sf(paste0("possible_fossil_recons_", tiempos [i], "Ma_dissolved.shp"))
   ras <- rasterize (x = shapefile, y = biomes_stack[[1]])
   sed_ras <- c (sed_ras, ras)
 }
@@ -402,31 +564,31 @@ plot(biomes_stack_fixed[[10]],
 #legend("center", legend = biome_labels, fill = biome_colors, bty = "n", cex = 1.2)
 
 #FOSSILS
-plot(biomes_stack_fixed[[10]], main = "45 Ma",
-     col = "white", legend = FALSE) #white raster as a basis
+plot(biomes_stack_fixed[[10]], main = "45 Ma", col = "white", legend = FALSE) #white raster as a basis
 plot(st_geometry(shp_list[[10]]),
      col = "black", add=T) #sediment cover
 # Add fossils as red points
 fossil_filtered <- subset(fossil_data, ma == 45)
-points(fossil_filtered$LONG, fossil_filtered$LAT, col = "red", pch = 19, cex = 0.2)
+points(fossil_filtered$paleolong, fossil_filtered$paleolat, col = "red", pch = 19, cex = 0.2)
 
-########################
+#######################
 #AREA TOTAL BIOMES VS SEDIMENTS BIOMES
 
 # Define the path to the directory containing the reconstructed sediment data.
-setwd("possible_fossil_reconstructed_dissolved")
+setwd("../possible_fossil_reconstructed_dissolved")
 
 # Calculate the area of the cells in 100 million km2
-area_rast <- cellSize(biomes_stack[[i]]) / 100000000
+area_rast <- cellSize(biomes_stack[[1]]) / 100000000
 par(mfrow = c(1, 1))
 plot(area_rast) 
 
 # Initialise a matrix to store results from the biome and sediment area (of 15 columns for the 15 periods with 15 rows in which only 10 will be filled, 5 for the biomes without sediment filter 1-5, and 5 for the biomes with sediment filter 11-15)
-res <- matrix(0, 15, 15)
+# res <- matrix(0, 15, 15)
+res <- matrix(0, 15, 14)
 
 # Loop to quantify the area of sediments and biomes in different time periods
-for (i in 1:15) {
-  shapefile <- read_sf(paste0("possible_fossil_recons_", ma[i], "Ma_dissolved.shp"))
+for (i in 1:14) {
+  shapefile <- read_sf(paste0("possible_fossil_recons_", tiempos[i], "Ma_dissolved.shp"))
   sed_raster <- rasterize(shapefile, area_rast)
   sed_raster[is.na(sed_raster[])] <- 0
   sed_raster <- sed_raster * 10
@@ -440,7 +602,7 @@ for (i in 1:15) {
   # Aggregate the total area of each biome and store it in the results matrix
   res_final <- aggregate((res_area$area) ~ res_area[, 1], FUN = sum)
   res[res_final[, 1], i] <- res_final[, 2]
-}
+  }
 
 # Initialise vectors to store areas of different biomes in different time periods.
 tropical <- c()
@@ -450,7 +612,7 @@ cold <- c()
 polar <- c()
 
 # Loop to calculate the area of each type of biome
-for (i in 1:15) {
+for (i in 1:14) {
   tropicals <- res[1, i] + res[11, i]
   arids <- res[2, i] + res[12, i]
   temperates <- res[3, i] + res[13, i]
@@ -479,13 +641,13 @@ total_area <- res[1:5, ] + res[11:15, ]
 sediments_area <- res[11:15, ]
 
 # Plot
-par(mfrow = c(1, 5))
+par(mfrow = c(1, 5), mar = c(5, 5, 4, 2) )
 
 # Loop to create bar charts for each biome
 for (i in 1:5) {
   # Bar chart of total area
   barplot(rev(total_area[i, 1:14]),
-          names.arg = rev(ma[1:14]),  # Time period labels on the x-axis
+          names.arg = ma[1:14],  # Time period labels on the x-axis
           col = "gray",
           border = NA,
           main = paste(biome_names[i], "biome"),
@@ -497,7 +659,7 @@ for (i in 1:5) {
   # Bar chart of the sediment area
   barplot(
     rev(sediments_area[i, 1:14]),
-    names.arg = rev(ma[1:14]),
+    names.arg = ma[1:14],
     col = "red",
     border = NA,
     add = TRUE,
@@ -519,7 +681,8 @@ for (i in 1:5) {
 
 # Biome, period and colour labels
 biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
-ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
+# ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
+ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66)
 biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
 
 # Calculate percentage of unsampled area
@@ -577,7 +740,7 @@ sum_area_climate<- colSums(total_area_climate)
 perc_total_climate<- round (sweep(total_area_climate, 2, sum_area_climate, `/`)*100, 2)
 
 colSums(perc_total_climate)
-colnames (perc_total_climate)<- tiempos
+colnames (perc_total_climate)<- tiempos[1:14]
 row.names(perc_total_climate)<- c(biome_names)
 perc_total_climate_rev <- perc_total_climate[, rev(colnames(perc_total_climate))] # Reverse x-axis
 
@@ -591,7 +754,7 @@ total_area_sediments <-sediments_area
 sum_area_sediments<- colSums(total_area_sediments)
 perc_total_sediments<- round (sweep(total_area_sediments, 2, sum_area_sediments, `/`)*100, 2)
 
-colnames (perc_total_sediments)<- tiempos
+colnames (perc_total_sediments)<- tiempos[1:14]
 row.names(perc_total_sediments)<- c(biome_names)
 perc_total_sediments_rev <- perc_total_sediments[, rev(colnames(perc_total_sediments))] # Reverse x-axis
 
@@ -599,10 +762,10 @@ barplot(perc_total_sediments_rev, col=biome_colors, border="white", xlab="Time",
 legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.8)
 
 #FOSSIL RECORD distribution across time (%)
-for (i in 1:length(tiempos)) {
+for (i in 1:14) {
   # Create a mask for the current time period
   tiempos_mask <- fossil_data$ma == tiempos[i]
-  fossil_data$biomes[tiempos_mask] <- terra::extract(biomes_stack_fixed[[i]], fossil_data[tiempos_mask, 9:10])[, 2]
+  fossil_data$biomes[tiempos_mask] <- terra::extract(biomes_stack_fixed[[i]], fossil_data[tiempos_mask, 8:9])[, 2]
 }
 
 # Create df with time period (ma) and biomes
@@ -633,7 +796,7 @@ sum_area_fossils <- colSums(df_wide)
 perc_total_fossils <- round(sweep(df_wide, 2, sum_area_fossils, `/`) * 100, 2)
 
 # Exclude the 1st column (biomes)
-perc_total_fossils <- as.matrix(perc_total_fossils[, 2:16])
+perc_total_fossils <- as.matrix(perc_total_fossils[, 2:15])
 row.names(perc_total_fossils)<- c(biome_names)
 perc_total_fossils_rev <- perc_total_fossils[, rev(colnames(perc_total_fossils))] # Reverse x-axis
 
@@ -648,14 +811,14 @@ legend("topright", legend=biome_names, fill=biome_colors, border="black", cex=0.
 delta_climased<- round ((perc_total_sediments_rev - perc_total_climate_rev)/perc_total_climate_rev *100, 2)
 
 # Plot
-par(mfrow = c(2, 1))
-plot (colnames (delta_climased)[2:15], rev(delta_climased [1,2:15]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% sediments - % climate)", xaxt="n", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climased [2,2:15]), col="#E2A76F", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climased [3,2:15]), col="#4C72B0", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climased [4,2:15]), col="#8172B3", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climased [5,2:15]), col="#CCCCCC", lwd = 3)
+par(mfrow = c(2, 1), mar = c(3, 4, 3, 2))
+plot (colnames (delta_climased), rev(delta_climased [1,]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% sediments - % climate)", xaxt="n", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [2,]), col="#E2A76F", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [3,]), col="#4C72B0", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [4,]), col="#8172B3", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [5,]), col="#CCCCCC", lwd = 3)
 abline (h=0, col="black", lty=1)
-axis(1, at=rev(colnames(delta_climased)[2:15]), labels=rev(ma[1:14])) 
+axis(1, at=rev(colnames(delta_climased)), labels=rev(ma[1:14])) 
 legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC"), lwd=2, bty="n", ncol= 5)
 
 # % FOSSILS VS % WORLD_CLIMATE
@@ -663,11 +826,11 @@ legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8
 delta_climafoss<- round ((perc_total_fossils_rev - perc_total_climate_rev)/perc_total_climate_rev *100, 2)
 
 # Plot
-plot (colnames (delta_climased)[2:15], rev(delta_climafoss [1,2:15]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% fossils - % climate)", xaxt="n", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climafoss [2,2:15]), col="#E2A76F", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climafoss [3,2:15]), col="#4C72B0", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climafoss [4,2:15]), col="#8172B3", lwd = 3)
-lines (colnames (delta_climased)[2:15], rev(delta_climafoss [5,2:15]), col="#CCCCCC", lwd = 3)
+plot (colnames (delta_climased), rev(delta_climafoss [1,]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% fossils - % climate)", xaxt="n", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [2,]), col="#E2A76F", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [3,]), col="#4C72B0", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [4,]), col="#8172B3", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [5,]), col="#CCCCCC", lwd = 3)
 abline (h=0, col="black", lty=1)
 axis(1, at=rev(colnames(delta_climased)[2:15]), labels=rev(ma[1:14])) 
 #legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC"), lwd=2, bty="n", ncol=5)
