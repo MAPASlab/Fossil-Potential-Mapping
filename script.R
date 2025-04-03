@@ -525,7 +525,7 @@ for (i in 1:nlyr(biomes_stack)) {
 # 1) plot biomes_stack
 par(mfrow = c(4, 4)) 
 
-for (i in 1:nlyr(biomes_stack_fixed)) {
+for (i in nlyr(biomes_stack_fixed):1) {
   plot(biomes_stack_fixed[[i]], col = biome_colors, legend = FALSE, 
        main = paste(names(biomes_stack_fixed)[i], "Ma"))
 }
