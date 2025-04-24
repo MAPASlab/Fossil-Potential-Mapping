@@ -548,22 +548,22 @@ for (i in 1:15) {
 # 2) plot 3 maps (1 for each layer used: sediments, biomes, fossils) for 1 example time (45 Ma) for material and methods
 par(mfrow = c(3, 3)) 
 
-#SEDIMENTS
-plot(biomes_stack_fixed[[10]], main = "45 Ma",
-     col = "grey", legend = FALSE) #grey raster as a basis
-plot(st_geometry(shp_list[[10]]), 
-     col = "black", add=T)
-
 #BIOMES
 plot(biomes_stack_fixed[[10]], 
      col = biome_colors, legend = FALSE, 
-     main = "45 Ma")
+     main = "World climatic zones")
 # plot an empty box at position 16 for legend
 #plot.new()
 #legend("center", legend = biome_labels, fill = biome_colors, bty = "n", cex = 1.2)
 
+#SEDIMENTS
+plot(biomes_stack_fixed[[10]], main = "Sediments",
+     col = "grey", legend = FALSE) #grey raster as a basis
+plot(st_geometry(shp_list[[10]]), 
+     col = "black", add=T)
+
 #FOSSILS
-plot(biomes_stack_fixed[[10]], main = "45 Ma",
+plot(biomes_stack_fixed[[10]], main = "Fossil data",
      col = "grey", legend = FALSE) #grey raster as a basis
 #plot(st_geometry(shp_list[[10]]), col = "black", add=T) #sediment cover
 # Add fossils as red points
