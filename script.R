@@ -275,9 +275,9 @@ fossil_data_temp$ma <- factor(fossil_data_temp$ma, levels = rev(sort(unique(foss
 
 #Plot
 par(mfrow = c(3, 1))
-boxplot (clima_model_temp[,2:15], col="grey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
-boxplot (clima_sed_temp[2:15], col="#FFDAB9", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
-boxplot(temp ~ ma, data = fossil_data_temp, col="#8B7765", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
+boxplot (clima_model_temp[,2:15], col="#4C72B0", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
+boxplot (clima_sed_temp[2:15], col="#E2A76F", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
+boxplot(temp ~ ma, data = fossil_data_temp, col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
 
 # 3.3) all periods in the same timeline (together)
 #WORLD CLIMATE
@@ -352,7 +352,7 @@ for (i in rev(ma[1:14])) {
 }
 
 #Plot
-cols = c ("model" = "white", "sediment" = "#FFDAB9" , "fossil" = "#8B7765")
+cols = c ("model" = "#4C72B0", "sediment" = "#E2A76F" , "fossil" = "lightgrey")
 
 par(mfrow = c(1, 1))
 boxplot (value ~ source + year, data=all_temp2, at = v,
@@ -394,9 +394,9 @@ fossil_data_prec$ma <- factor(fossil_data_prec$ma, levels = rev(sort(unique(foss
 
 #plot
 par(mfrow = c(3, 1))
-boxplot (clima_model_prec[,2:15],col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="World climate", outline=FALSE) 
-boxplot (clima_sed_prec[2:15],col="#FFDAB9", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
-boxplot (prec~ma, data=fossil_data_prec, col= "#8B7765", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
+boxplot (clima_model_prec[,2:15],col="#4C72B0", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="World climate", outline=FALSE) 
+boxplot (clima_sed_prec[2:15],col="#E2A76F", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
+boxplot (prec~ma, data=fossil_data_prec, col= "lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
 
 # 4.3) all periods in the same timeline (together)
 #WORLD CLIMATE
@@ -454,9 +454,8 @@ all_prec2 <- rbind (cl_mo_pr, cl_se_pr, cl_fo_pr)
 all_prec2$year <- factor(all_prec2$year, levels = unique (all_prec2$year))
 all_prec2$source <- factor(all_prec2$source, levels = c ("model", "sediment", "fossil"))
 
-
 #Plot
-cols = c ("model" = "white", "sediment" = "#FFDAB9" , "fossil" = "#8B7765")
+cols = c ("model" = "#4C72B0", "sediment" = "#E2A76F" , "fossil" = "lightgrey")
 
 v <- c()
 for (i in seq (1, 54, 4)) {
@@ -502,7 +501,7 @@ for (i in 1:length(ma)){
 # assign names to each layer of the stack according to age (in millions of years) and plot
 names (biomes_stack) <- rev(ma)
 
-biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
+biome_colors <- c("#117733", "#DDCC77", "#CC6677", "#88CCEE", "#888888")
 biome_values <- c(1, 2, 3, 4, 5)
 biome_labels <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
 
@@ -551,7 +550,7 @@ par(mfrow = c(3, 3))
 
 #SEDIMENTS
 plot(biomes_stack_fixed[[10]], main = "45 Ma",
-     col = "white", legend = FALSE) #white raster as a basis
+     col = "grey", legend = FALSE) #grey raster as a basis
 plot(st_geometry(shp_list[[10]]), 
      col = "black", add=T)
 
@@ -564,9 +563,9 @@ plot(biomes_stack_fixed[[10]],
 #legend("center", legend = biome_labels, fill = biome_colors, bty = "n", cex = 1.2)
 
 #FOSSILS
-plot(biomes_stack_fixed[[10]], main = "45 Ma", col = "white", legend = FALSE) #white raster as a basis
-plot(st_geometry(shp_list[[10]]),
-     col = "black", add=T) #sediment cover
+plot(biomes_stack_fixed[[10]], main = "45 Ma",
+     col = "grey", legend = FALSE) #grey raster as a basis
+#plot(st_geometry(shp_list[[10]]), col = "black", add=T) #sediment cover
 # Add fossils as red points
 fossil_filtered <- subset(fossil_data, ma == 45)
 points(fossil_filtered$paleolong, fossil_filtered$paleolat, col = "red", pch = 19, cex = 0.2)
@@ -683,7 +682,7 @@ for (i in 1:5) {
 biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
 # ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66, 69)
 ma <- c(0, 3, 11, 15, 20, 26, 31, 36, 40, 45, 52, 56, 61, 66)
-biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
+biome_colors <- c("#117733", "#DDCC77", "#CC6677", "#88CCEE", "#888888")
 
 # Calculate percentage of unsampled area
 percentage_unsampled <- ((total_area - sediments_area) / total_area) * 100
@@ -731,7 +730,7 @@ legend(
 ########################
 #ACCUMULATED BARPLOTS OF %
 biome_names <- c("Tropical", "Arid", "Temperate", "Cold", "Polar")
-biome_colors <- c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC")
+biome_colors <- c("#117733", "#DDCC77", "#CC6677", "#88CCEE", "#888888")
 
 #climate distribution across time (%)
 # total_area_climate <- res[1:5, ] + res[11:15, ]
@@ -812,25 +811,26 @@ delta_climased<- round ((perc_total_sediments_rev - perc_total_climate_rev)/perc
 
 # Plot
 par(mfrow = c(2, 1), mar = c(3, 4, 3, 2))
-plot (colnames (delta_climased), rev(delta_climased [1,]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% sediments - % climate)", xaxt="n", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climased [2,]), col="#E2A76F", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climased [3,]), col="#4C72B0", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climased [4,]), col="#8172B3", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climased [5,]), col="#CCCCCC", lwd = 3)
+plot (colnames (delta_climased), rev(delta_climased [1,]), type="l", ylim=c(-100, 500), col="#117733", xlab="Time (Ma)", ylab="DELTA (% sediments - % climate)", xaxt="n", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [2,]), col="#DDCC77", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [3,]), col="#CC6677", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [4,]), col="#88CCEE", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climased [5,]), col="#888888", lwd = 3)
 abline (h=0, col="black", lty=1)
 axis(1, at=rev(colnames(delta_climased)), labels=rev(ma[1:14])) 
-legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC"), lwd=2, bty="n", ncol= 5)
+legend("top", legend=c(biome_labels), col=c("#117733", "#DDCC77", "#CC6677", "#88CCEE", "#888888"), lwd=2, bty="n", ncol= 5)
 
 # % FOSSILS VS % WORLD_CLIMATE
 # Calculate delta
 delta_climafoss<- round ((perc_total_fossils_rev - perc_total_climate_rev)/perc_total_climate_rev *100, 2)
 
 # Plot
-plot (colnames (delta_climased), rev(delta_climafoss [1,]), type="l", ylim=c(-100, 500), col="#55A868", xlab="Time (Ma)", ylab="DELTA (% fossils - % climate)", xaxt="n", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climafoss [2,]), col="#E2A76F", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climafoss [3,]), col="#4C72B0", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climafoss [4,]), col="#8172B3", lwd = 3)
-lines (colnames (delta_climased), rev(delta_climafoss [5,]), col="#CCCCCC", lwd = 3)
+plot (colnames (delta_climased), rev(delta_climafoss [1,]), type="l", ylim=c(-100, 500), col="#117733", xlab="Time (Ma)", ylab="DELTA (% fossils - % climate)", xaxt="n", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [2,]), col="#DDCC77", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [3,]), col="#CC6677", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [4,]), col="#88CCEE", lwd = 3)
+lines (colnames (delta_climased), rev(delta_climafoss [5,]), col="#888888", lwd = 3)
 abline (h=0, col="black", lty=1)
 axis(1, at=rev(colnames(delta_climased)[2:15]), labels=rev(ma[1:14])) 
 #legend("top", legend=c(biome_labels), col=c("#55A868", "#E2A76F", "#4C72B0", "#8172B3", "#CCCCCC"), lwd=2, bty="n", ncol=5)
+
