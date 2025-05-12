@@ -675,6 +675,9 @@ for (i in 1:5) {
   }
 }
 
+percentage_sediments <- (sediments_area / total_area) * 100
+row_means_sediments <- rowMeans(percentage_sediments, na.rm = TRUE)
+
 ########################
 #% OF NON SAMPLED BIOME AREA
 
