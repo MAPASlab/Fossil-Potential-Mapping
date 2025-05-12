@@ -275,9 +275,9 @@ fossil_data_temp$ma <- factor(fossil_data_temp$ma, levels = rev(sort(unique(foss
 
 #Plot
 par(mfrow = c(3, 1))
-boxplot (clima_model_temp[,2:15], col="#4C72B0", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
-boxplot (clima_sed_temp[2:15], col="#E2A76F", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
-boxplot(temp ~ ma, data = fossil_data_temp, col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
+boxplot (clima_model_temp[,2:15], col="lightgrey", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="World climate", outline=FALSE)
+boxplot (clima_sed_temp[2:15], col="#332288", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Sediments", outline=FALSE)
+boxplot(temp ~ ma, data = fossil_data_temp, col="#AA4499", ylim=c(-40, 45), xlab = "Time (Ma)", ylab = "Temperature (ºC)", main="Fossils", outline=FALSE)
 
 # 3.3) all periods in the same timeline (together)
 #WORLD CLIMATE
@@ -352,7 +352,7 @@ for (i in rev(ma[1:14])) {
 }
 
 #Plot
-cols = c ("model" = "#4C72B0", "sediment" = "#E2A76F" , "fossil" = "lightgrey")
+cols = c ("model" = "lightgrey", "sediment" = "#332288" , "fossil" = "#AA4499")
 
 par(mfrow = c(1, 1))
 boxplot (value ~ source + year, data=all_temp2, at = v,
@@ -394,9 +394,9 @@ fossil_data_prec$ma <- factor(fossil_data_prec$ma, levels = rev(sort(unique(foss
 
 #plot
 par(mfrow = c(3, 1))
-boxplot (clima_model_prec[,2:15],col="#4C72B0", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="World climate", outline=FALSE) 
-boxplot (clima_sed_prec[2:15],col="#E2A76F", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
-boxplot (prec~ma, data=fossil_data_prec, col= "lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
+boxplot (clima_model_prec[,2:15],col="lightgrey", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="World climate", outline=FALSE) 
+boxplot (clima_sed_prec[2:15],col="#332288", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Sediments", outline=FALSE) 
+boxplot (prec~ma, data=fossil_data_prec, col= "#AA4499", ylim=c(0, 3000), xlab = "Time (Ma)", ylab = "Precipitation (mm/year)", main="Fossils", outline=FALSE)
 
 # 4.3) all periods in the same timeline (together)
 #WORLD CLIMATE
@@ -455,7 +455,7 @@ all_prec2$year <- factor(all_prec2$year, levels = unique (all_prec2$year))
 all_prec2$source <- factor(all_prec2$source, levels = c ("model", "sediment", "fossil"))
 
 #Plot
-cols = c ("model" = "#4C72B0", "sediment" = "#E2A76F" , "fossil" = "lightgrey")
+cols = c ("model" = "lightgrey", "sediment" = "#332288" , "fossil" = "#AA4499")
 
 v <- c()
 for (i in seq (1, 54, 4)) {
@@ -560,7 +560,7 @@ plot(biomes_stack_fixed[[10]],
 plot(biomes_stack_fixed[[10]], main = "Sediments",
      col = "grey", legend = FALSE) #grey raster as a basis
 plot(st_geometry(shp_list[[10]]), 
-     col = "black", add=T)
+     col = "#332288", border = "#332288", add=T)
 
 #FOSSILS
 plot(biomes_stack_fixed[[10]], main = "Fossil data",
@@ -568,7 +568,7 @@ plot(biomes_stack_fixed[[10]], main = "Fossil data",
 #plot(st_geometry(shp_list[[10]]), col = "black", add=T) #sediment cover
 # Add fossils as red points
 fossil_filtered <- subset(fossil_data, ma == 45)
-points(fossil_filtered$paleolong, fossil_filtered$paleolat, col = "red", pch = 19, cex = 0.2)
+points(fossil_filtered$paleolong, fossil_filtered$paleolat, col =  "#AA4499", pch = 19, cex = 0.2)
 
 #######################
 #AREA TOTAL BIOMES VS SEDIMENTS BIOMES
@@ -659,7 +659,7 @@ for (i in 1:5) {
   barplot(
     rev(sediments_area[i, 1:14]),
     names.arg = ma[1:14],
-    col = "red",
+    col = "#332288",
     border = NA,
     add = TRUE,
     ylim = c(0, 600000)
@@ -670,7 +670,7 @@ for (i in 1:5) {
     legend(
       "topright",
       legend = c("Total Area", "Sediment Area"),
-      fill = c("gray", "red")
+      fill = c("gray", "#332288")
     )
   }
 }
